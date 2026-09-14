@@ -37,8 +37,8 @@ async function sha256(text){
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-const BOOTSTRAP_USERNAME = env => env.BOOTSTRAP_USERNAME || 'mariyammotors';
-const BOOTSTRAP_PASSWORD = env => env.BOOTSTRAP_PASSWORD || '123456789';
+const BOOTSTRAP_USERNAME = env => env.BOOTSTRAP_USERNAME || 'demo';
+const BOOTSTRAP_PASSWORD = env => env.BOOTSTRAP_PASSWORD || 'demo123';
 
 async function getSetting(env, key){
   const row = await env.DB.prepare('SELECT value FROM settings WHERE key = ?').bind(key).first();
@@ -183,7 +183,7 @@ async function backupAllToR2(env){
   const owners=new Set();
   try{ const a=await getSetting(env,'admin'); if(a?.username) owners.add(a.username); }catch(_){}
   try{ const p=await env.DB.prepare('SELECT DISTINCT owner FROM parts').all(); for(const r of p.results||[]) if(r.owner) owners.add(r.owner); }catch(_){}
-  if(owners.size===0) owners.add('mariyammotors');
+  if(owners.size===0) owners.add('demo');
   const all={ time:new Date().toISOString(), owners:[...owners], data:{} };
   for(const owner of owners){
     const vals=await Promise.all(COLLECTIONS.map(c=>findAll(env,c,owner)));

@@ -96,11 +96,11 @@ window.addEventListener('error', e=>{ const b=document.getElementById('boot'); i
     <div class="logo-mark">M</div>
     <div class="brand">Mariyam<span> Motors</span></div>
     <div class="sub">Motorcycle Parts & Accessories — PAN 123456789 • Nepal VAT 13%</div>
-    <input class="auth-field" id="authUser" placeholder="Username" autocomplete="off" value="mariyammotors">
-    <input class="auth-field" id="authPass" type="password" placeholder="Password" value="123456789">
+    <input class="auth-field" id="authUser" placeholder="Username" autocomplete="off" value="demo">
+    <input class="auth-field" id="authPass" type="password" placeholder="Password" value="demo123">
     <p class="auth-error" id="authErr"></p>
     <button class="btn-primary" id="authBtn">Sign In</button>
-    <p style="font-size:11px;color:var(--muted);margin-top:10px">Login: mariyammotors / 123456789</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px">Login: demo / demo123</p>
   </div>
 </div>
 
@@ -268,8 +268,8 @@ window.addEventListener('error', e=>{ const b=document.getElementById('boot'); i
 <script>
 const DB_ENDPOINT = localStorage.getItem('moto_endpoint') || 'https://moto-logistics.info-thedimetechnology.workers.dev';
 let AUTH = JSON.parse(localStorage.getItem('moto_auth')||'null');
-// migrate old admin -> mariyammotors / 123456789
-if(AUTH && AUTH.username==='admin'){ AUTH={username:'mariyammotors', password:'123456789'}; localStorage.setItem('moto_auth', JSON.stringify(AUTH)); }
+// migrate old logins -> demo / demo123
+if(AUTH && (AUTH.username==='admin' || AUTH.username==='mariyammotors')){ AUTH={username:'demo', password:'demo123'}; localStorage.setItem('moto_auth', JSON.stringify(AUTH)); }
 const LS_KEY='moto_data_v1';
 const VAT_DEFAULT=13;
 let S = loadLocal();
