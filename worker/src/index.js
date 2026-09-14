@@ -47,8 +47,8 @@ async function getSetting(env, key){
 async function setSetting(env, key, value){
   await env.DB.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').bind(key, JSON.stringify(value)).run();
 }
+let _schemaDone=false;
 async function ensureSchema(env){
-  // Create tables if not exists — idempotent
   const stmts = [
     `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`,
     ...COLLECTIONS.map(t=>`CREATE TABLE IF NOT EXISTS ${t} (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, owner TEXT)`),
@@ -57,9 +57,14 @@ async function ensureSchema(env){
   ];
   for(const s of stmts){ try{ await env.DB.prepare(s).run(); }catch(e){} }
 }
+async function ensureSchemaOnce(env){
+  if(_schemaDone) return;
+  await ensureSchema(env);
+  _schemaDone=true;
+}
 
 async function checkPassword(env, username, password){
-  await ensureSchema(env);
+  await ensureSchemaOnce(env);
   let admin = await getSetting(env, 'admin');
   if(!admin){
     if(username === BOOTSTRAP_USERNAME(env) && password === BOOTSTRAP_PASSWORD(env)){
@@ -109,20 +114,39 @@ async function replaceKV(env, table, obj, owner){
 }
 
 async function handleGetAll(env, body){
-  await ensureSchema(env);
+  await ensureSchemaOnce(env);
   if(!await checkPassword(env, body.username, body.password)) return { ok:false, error:'Invalid username or password' };
   const owner = body.username;
-  const results = await Promise.all(COLLECTIONS.map(c=> findAll(env,c,owner)));
-  const map={}; COLLECTIONS.forEach((c,i)=> map[c]=results[i]);
-  // legacy godowns default if empty
-  if(!map.godowns || map.godowns.length===0){
-    map.godowns = [{id:'g1', name:'Main Godown', location:'Kathmandu', code:'GD-01'}, {id:'g2', name:'Secondary Godown', location:'Branch', code:'GD-02'}];
+  // batch all finds in one roundtrip — much faster than 17 sequential queries
+  try {
+    const stmts = COLLECTIONS.map(c=> env.DB.prepare(`SELECT data FROM ${c} WHERE owner = ?`).bind(owner));
+    stmts.push(env.DB.prepare(`SELECT key, value FROM financeData WHERE owner = ?`).bind(owner));
+    stmts.push(env.DB.prepare(`SELECT value FROM settings WHERE key = ?`).bind('appSettings'));
+    const batchRes = await env.DB.batch(stmts);
+    const map={};
+    for(let i=0;i<COLLECTIONS.length;i++){
+      const r=batchRes[i];
+      map[COLLECTIONS[i]] = (r.results||[]).map(x=>{ try{ return JSON.parse(x.data); }catch(_){ return x.data; } });
+    }
+    if(!map.godowns || map.godowns.length===0){
+      map.godowns = [{id:'g1', name:'Main Godown', location:'Kathmandu', code:'GD-01'}, {id:'g2', name:'Secondary Godown', location:'Branch', code:'GD-02'}];
+    }
+    const finR=batchRes[COLLECTIONS.length];
+    const financeData={}; for(const row of finR.results||[]){ try{ financeData[row.key]=JSON.parse(row.value);}catch(_){ financeData[row.key]=row.value; } }
+    const appSetR=batchRes[COLLECTIONS.length+1];
+    const appSettings = appSetR.results && appSetR.results[0] ? JSON.parse(appSetR.results[0].value) : null;
+    return { ok:true, data:{ ...map, financeData, settings: appSettings } };
+  } catch(e){
+    // fallback to old method
+    const results = await Promise.all(COLLECTIONS.map(c=> findAll(env,c,owner)));
+    const map={}; COLLECTIONS.forEach((c,i)=> map[c]=results[i]);
+    if(!map.godowns || map.godowns.length===0) map.godowns = [{id:'g1', name:'Main Godown', location:'Kathmandu', code:'GD-01'}, {id:'g2', name:'Secondary Godown', location:'Branch', code:'GD-02'}];
+    const financeData = await findAllKV(env,'financeData', owner);
+    return { ok:true, data:{ ...map, financeData, settings: await getSetting(env,'appSettings') } };
   }
-  const financeData = await findAllKV(env,'financeData', owner);
-  return { ok:true, data:{ ...map, financeData, settings: await getSetting(env,'appSettings') } };
 }
 async function handleSaveAll(env, body){
-  await ensureSchema(env);
+  await ensureSchemaOnce(env);
   if(!await checkPassword(env, body.username, body.password)) return { ok:false, error:'Invalid username or password' };
   // Viewer read-only check
   try{
@@ -179,7 +203,7 @@ async function handleResetPassword(env, body){
 }
 async function backupAllToR2(env){
   if(!env.BACKUP_BUCKET) return {ok:false, error:'No R2'};
-  await ensureSchema(env);
+  await ensureSchemaOnce(env);
   const owners=new Set();
   try{ const a=await getSetting(env,'admin'); if(a?.username) owners.add(a.username); }catch(_){}
   try{ const p=await env.DB.prepare('SELECT DISTINCT owner FROM parts').all(); for(const r of p.results||[]) if(r.owner) owners.add(r.owner); }catch(_){}
