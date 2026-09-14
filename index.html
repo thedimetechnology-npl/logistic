@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mariyam Motors — Motorcycle Parts & Accessories Portal</title>
+<meta name="description" content="Mariyam Motors — manage motorcycle parts, godowns, vendors, dispatch to dealers, and Nepal VAT finance. PAN 123456789">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+<style>
+  :root{ --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --line:#e2e8f0; --txt:#0f172a; --muted:#64748b; --muted2:#94a3b8; --amber:#f59e0b; --amber-dark:#d97706; --amber-soft:#fffbeb; --sidebar:#0b1220; --sidebar2:#141f35; --sidebar-line:#1e2e4a; --green:#16a34a; --green-soft:#dcfce7; --red:#dc2626; --red-soft:#fee2e2; --blue:#0f5b9a; --slate:#334155; --shadow:0 4px 20px rgba(15,23,42,0.06); --shadow-lg:0 12px 40px rgba(15,23,42,0.12); --radius:14px; --radius-sm:10px; }
+  *{box-sizing:border-box;margin:0;padding:0} html,body{height:100%} body{background:var(--bg);color:var(--txt);font-family:'Inter','Poppins',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+  .auth-wrap{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:radial-gradient(800px 400px at 20% 20%, #1e293b 0%, #0b1220 60%), linear-gradient(160deg,#0b1220 0%, #1e293b 100%);}
+  .auth-card{width:min(420px,92vw);padding:36px 32px 30px;border-radius:20px;background:var(--surface);box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;border:1px solid var(--line)}
+  .auth-card .logo-mark{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:#0b1220;font-weight:900;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(245,158,11,0.35);border:1px solid rgba(255,255,255,0.3)}
+  .auth-card .brand{font-size:20px;font-weight:800;letter-spacing:-0.3px} .auth-card .brand span{color:var(--amber-dark)} .auth-card .sub{color:var(--muted);font-size:12.5px;margin:6px 0 22px;line-height:1.5}
+  .auth-field{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#f8fafc;color:var(--txt);font-size:14px;margin-bottom:12px;outline:none;font-family:inherit;transition:0.15s}
+  .auth-field:focus{border-color:var(--amber);background:#fff;box-shadow:0 0 0 3px rgba(245,158,11,0.15)} .auth-error{color:var(--red);font-size:13px;min-height:18px;margin-bottom:10px;text-align:left}
+  .btn-primary{width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:#0b1220;font-family:inherit;box-shadow:0 6px 16px rgba(245,158,11,0.3)} .btn-primary:hover{filter:brightness(1.05)}
+  .app{position:absolute;inset:0;z-index:10;display:none;background:var(--bg)} .app.on{display:block}
+  .sidebar{position:absolute;top:0;left:0;bottom:0;width:280px;background:var(--sidebar);border-right:1px solid var(--sidebar-line);display:flex;flex-direction:column;padding:16px 12px;overflow-y:auto;font-size:13px;color:#cbd5e1}
+  .sidebar .brand-row{display:flex;align-items:center;gap:10px;padding:10px 10px 16px;border-bottom:1px solid var(--sidebar-line);margin-bottom:12px}
+  .sidebar .logo-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:#0b1220;font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(245,158,11,0.25)}
+  .sidebar .brand{font-weight:800;font-size:13.5px;line-height:1.2;color:#f8fafc} .sidebar .brand small{display:block;font-weight:500;font-size:10.5px;color:#94a3b8;margin-top:2px;letter-spacing:0.4px}
+  .sidebar .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;margin:14px 10px 6px}
+  .sidebar .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;color:#94a3b8;cursor:pointer;font-size:13px;font-weight:500;margin-bottom:2px;transition:0.15s;border:1px solid transparent}
+  .sidebar .nav-item:hover{background:var(--sidebar2);color:#f1f5f9;border-color:var(--sidebar-line)} .sidebar .nav-item.active{background:linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.08));color:#fbbf24;border-color:rgba(245,158,11,0.3);font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+  .sidebar .foot{margin-top:auto;padding:12px 10px 6px;border-top:1px solid var(--sidebar-line);background:rgba(255,255,255,0.02);border-radius:10px;margin-left:-2px;margin-right:-2px} .sidebar .foot .who{font-size:12.5px;font-weight:700;color:#f1f5f9} .sidebar .foot .who small{display:block;font-weight:500;font-size:10.5px;color:#94a3b8}
+  .main{position:absolute;top:0;left:280px;right:0;bottom:0;display:flex;flex-direction:column}
+  .topbar{height:64px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;background:#ffffff;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(15,23,42,0.05)}
+  .topbar .crumb{font-size:15px;font-weight:800;letter-spacing:-0.2px} .topbar .crumb span{color:var(--amber-dark)} .topbar .status{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:20px;border:1px solid var(--line)} .topbar .dot{width:9px;height:9px;border-radius:50%;background:var(--muted2);box-shadow:0 0 0 3px rgba(148,163,184,0.2)} .topbar .dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.2)}
+  .content{flex:1;overflow-y:auto;padding:22px 24px 40px} .content::-webkit-scrollbar{width:10px} .content::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px}
+  .view{display:none} .view.on{display:block} .view-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap} .view-head h2{font-size:20px;font-weight:700} .view-head .sub{color:var(--muted);font-size:12px} .view-head .spacer{flex:1}
+  .btn{background:var(--blue);border:none;color:#fff;font-weight:600;padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit;font-size:13px} .btn:hover{background:var(--blue-dark)} .btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--txt)} .btn.ghost:hover{border-color:var(--blue);color:var(--blue)} .btn.danger{background:var(--red-soft);border:1px solid rgba(220,38,38,.25);color:var(--red)} .btn.small{padding:6px 10px;font-size:12px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px} .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);min-height:96px}
+  .stat .lbl{font-size:12px;color:var(--muted);font-weight:600} .stat .num{font-size:24px;font-weight:800;margin-top:6px} .stat .sub{font-size:11px;color:var(--muted2);margin-top:4px}
+  .stat.accent{border:none;color:#fff} .stat.accent .lbl{color:rgba(255,255,255,.9)} .stat.accent .sub{color:rgba(255,255,255,.85)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)} .card h3{font-size:14px;font-weight:700;margin-bottom:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px} .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  table{width:100%;border-collapse:collapse} th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);text-align:left;padding:9px 10px;font-weight:600;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:1} td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px} tr:hover td{background:var(--surface2)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600} .badge.g{background:var(--green-soft);color:var(--green)} .badge.o{background:var(--orange-soft);color:var(--orange)} .badge.b{background:var(--blue-soft);color:var(--blue)} .badge.r{background:var(--red-soft);color:var(--red)} .badge.p{background:var(--purple-soft);color:var(--purple)} .badge.gr{background:#f1f5f9;color:#475569}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px} .toolbar input,.toolbar select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:13px;outline:none}
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:50;display:none;align-items:center;justify-content:center} .overlay.on{display:flex}
+  .modal{width:min(640px,96vw);max-height:92vh;overflow:auto;border-radius:var(--radius);background:var(--surface);padding:16px;box-shadow:var(--shadow-lg)} .modal h3{font-size:15px;font-weight:700;margin-bottom:10px}
+  .form-label{font-size:11px;color:var(--muted);display:block;margin:8px 0 4px;font-weight:600} .form-input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--txt);font-size:13px;outline:none;font-family:inherit} .form-input:focus{border-color:var(--blue);background:#fff}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+  .row{display:flex;gap:10px} .row>*{flex:1}
+  .empty{color:var(--muted2);text-align:center;padding:28px;font-size:13px}
+  .inv-box{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+  .boot{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#071e32,#0f5b9a);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .4s} .boot.hide{opacity:0;pointer-events:none} .boot .ring{width:40px;height:40px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:spin 1s linear infinite} @keyframes spin{to{transform:rotate(360deg)}}
+  .lines{border:1px solid var(--line);border-radius:10px;overflow:hidden} .line-row{display:grid;grid-template-columns:1.6fr .7fr .6fr .7fr .7fr 28px;gap:8px;padding:8px 10px;align-items:center;border-bottom:1px solid var(--line);background:#fff} .line-row.head{background:var(--surface2);font-size:11px;font-weight:700;color:var(--muted)}
+  @media(max-width:900px){ .stats{grid-template-columns:repeat(2,1fr)} .grid2,.grid3{grid-template-columns:1fr} .sidebar{transform:translateX(-100%);position:fixed;z-index:15;width:280px} .sidebar.open{transform:translateX(0)} .main{left:0} .line-row{grid-template-columns:1fr 1fr} .line-row.head{display:none} }
+</style>
+<style>
+/* Warehouse Pro — distinct from PMS */
+.btn{background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:#0b1220;border:none;box-shadow:0 4px 12px rgba(245,158,11,0.25);font-weight:700}
+.btn:hover{filter:brightness(1.06);background:linear-gradient(135deg,var(--amber),var(--amber-dark))}
+.btn.ghost{background:#ffffff;border:1px solid var(--line);color:var(--slate);box-shadow:none}
+.btn.ghost:hover{border-color:var(--amber);color:var(--amber-dark);background:var(--amber-soft)}
+.btn.danger{background:#fff;border:1px solid #fecaca;color:var(--red)}
+.card{border-color:#e2e8f0;box-shadow:0 2px 14px rgba(15,23,42,0.05)}
+.stats{gap:14px}
+.stat{background:#ffffff;border:1px solid #e2e8f0;border-left:4px solid var(--amber);border-radius:12px;box-shadow:0 2px 12px rgba(15,23,42,0.04);min-height:100px}
+.stat .lbl{color:var(--muted);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:0.7px}
+.stat .num{color:var(--txt);font-size:26px}
+.stat .sub{color:var(--muted2)}
+.stat.accent{background:#ffffff!important;color:var(--txt)!important;border:1px solid #e2e8f0;border-left:4px solid var(--amber);box-shadow:0 2px 12px rgba(15,23,42,0.04)}
+.stat.accent .lbl{color:var(--muted)!important}
+.stat.accent .num{color:var(--txt)!important}
+.stat.accent .sub{color:var(--muted2)!important}
+.content{max-width:1600px;margin:0 auto;width:100%}
+.view-head h2{letter-spacing:-0.4px}
+th{background:#f8fafc;color:#475569;border-bottom:1px solid #e2e8f0;font-size:10.5px}
+td{border-bottom:1px solid #f1f5f9}
+tr:hover td{background:#f8fafc}
+.badge.b{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.badge.g{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.badge.r{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.badge.o{background:#ffedd5;color:#9a3412;border:1px solid #fed7aa}
+.boot{background:radial-gradient(900px 500px at 20% 20%, #1e293b 0%, #0b1220 65%), linear-gradient(180deg,#0b1220,#0f172a)}
+</style>
+</head>
+<body>
+<div class="boot" id="boot"><div class="ring"></div><small style="color:#fff">Mariyam Motors — Loading…</small></div>
+<script> // failsafe: hide boot even if main script errors
+setTimeout(()=>{ const b=document.getElementById('boot'); if(b) b.classList.add('hide'); }, 2000);
+window.addEventListener('error', e=>{ const b=document.getElementById('boot'); if(b) b.classList.add('hide'); const m=document.createElement('div'); m.textContent='Error: '+ (e.message||'load failed') + ' — press Ctrl+Shift+R or clear site data'; m.style.cssText='position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:10px 14px;border-radius:8px;z-index:999;font-size:12px'; document.body.appendChild(m); setTimeout(()=>m.remove(),5000); });
+</script>
+
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
+    <div class="logo-mark">M</div>
+    <div class="brand">Mariyam<span> Motors</span></div>
+    <div class="sub">Motorcycle Parts & Accessories — PAN 123456789 • Nepal VAT 13%</div>
+    <input class="auth-field" id="authUser" placeholder="Username" autocomplete="off" value="mariyammotors">
+    <input class="auth-field" id="authPass" type="password" placeholder="Password" value="123456789">
+    <p class="auth-error" id="authErr"></p>
+    <button class="btn-primary" id="authBtn">Sign In</button>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px">Login: mariyammotors / 123456789</p>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-row"><div class="logo-mark">M</div><div class="brand">Mariyam Motors<small>PAN 123456789 • Parts • Godown • Dispatch</small></div></div>
+    <p class="nav-label">Overview</p>
+    <div class="nav-item active" data-view="dashboard">📊 Dashboard</div>
+    <div class="nav-item" data-view="parts">🔧 Parts Catalog</div>
+    <div class="nav-item" data-view="godown">🏭 Godown / Stock</div>
+    <p class="nav-label">Supply Chain</p>
+    <div class="nav-item" data-view="vendors">🏢 Vendors</div>
+    <div class="nav-item" data-view="dealers">🏪 Dealers (B2B)</div>
+    <div class="nav-item" data-view="purchase">📥 Purchase Orders</div>
+    <div class="nav-item" data-view="dispatch">🚚 Dispatch</div>
+    <p class="nav-label">Finance — Nepal VAT 13%</p>
+    <div class="nav-item" data-view="invoices">🧾 Invoices</div>
+    <div class="nav-item" data-view="payments">💳 Payments</div>
+    <div class="nav-item" data-view="expenses">💸 Expenses</div>
+    <p class="nav-label">System</p>
+    <div class="nav-item" data-view="reports">📈 Reports</div>
+    <div class="nav-item" data-view="masters">⚙️ Masters</div>
+    <div class="nav-item" data-view="settings">👤 Settings</div>
+    <div class="foot"><div class="who" id="whoBox">admin<small id="whoSub">Administrator</small></div><button class="btn ghost small" style="width:100%;margin-top:8px" id="logoutBtn">Sign out</button></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="btn ghost small" id="menuBtn">☰</button>
+      <div class="crumb" id="crumb">Dashboard <span>• Overview</span></div>
+      <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">Offline</span></div>
+      <button class="btn small" id="syncBtn">Sync</button>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="view on" id="view-dashboard">
+        <div class="view-head"><h2>Dashboard</h2><div class="spacer"></div><button class="btn ghost small" onclick="exportAll()">Export Excel</button><button class="btn small" onclick="openImport()">Import Parts</button></div>
+        <div class="stats" id="stats"></div>
+        <div class="grid2">
+          <div class="card"><h3>Low Stock Alerts</h3><div id="lowStock"></div></div>
+          <div class="card"><h3>Recent Dispatches</h3><div id="recentDispatch"></div></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3>Stock Value by Godown</h3><div id="stockByGodown"></div></div>
+      </div>
+
+      <!-- PARTS -->
+      <div class="view" id="view-parts">
+        <div class="view-head"><div><h2>Parts Catalog</h2><div class="sub">5000+ SKUs • Barcode • Nepal VAT 13%</div></div><div class="spacer"></div><button class="btn ghost small" onclick="openBarcodeBulk()">Barcode Print</button><button class="btn ghost small" onclick="exportParts()">Export</button><button class="btn" onclick="openPartModal()">+ Add Part</button></div>
+        <div class="toolbar">
+          <input id="partSearch" placeholder="Search SKU, name, OEM..." style="flex:1;min-width:180px" oninput="renderParts()">
+          <select id="partCatFilter" onchange="renderParts()"><option value="">All Categories</option></select>
+          <select id="partBrandFilter" onchange="renderParts()"><option value="">All Brands</option></select>
+          <select id="partGodownFilter" onchange="renderParts()"><option value="">All Godowns</option></select>
+          <select id="partStockFilter" onchange="renderParts()"><option value="">All Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option><option value="ok">In Stock</option></select>
+        </div>
+        <div class="card" style="padding:0;overflow:auto;max-height:62vh"><table><thead><tr><th>SKU / Barcode</th><th>Part Name</th><th>Category</th><th>Brand</th><th>MRP (NPR)</th><th>Cost</th><th>Godown Name</th><th>Quantity</th><th>Action</th></tr></thead><tbody id="partsBody"></tbody></table></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center"><button class="btn ghost small" onclick="partsPage-- ; renderParts()">‹ Prev</button><span id="partsPageInfo" style="font-size:12px;color:var(--muted)"></span><button class="btn ghost small" onclick="partsPage++ ; renderParts()">Next ›</button><span style="margin-left:auto;font-size:12px;color:var(--muted)" id="partsCount"></span></div>
+      </div>
+
+      <!-- GODOWN -->
+      <div class="view" id="view-godown">
+        <div class="view-head"><h2>Godown / Stock</h2><div class="spacer"></div><button class="btn ghost small" onclick="openStockAdjust()">Stock Adjust</button><button class="btn ghost small" onclick="openTransfer()">Transfer</button><button class="btn" onclick="openStockIn()">Stock In (GRN)</button></div>
+        <div class="grid2">
+          <div class="card" id="godownABox"></div>
+          <div class="card" id="godownBBox"></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3>Inventory Ledger (last 50)</h3><div style="max-height:360px;overflow:auto"><table><thead><tr><th>Date</th><th>SKU</th><th>Part</th><th>Type</th><th>Godown</th><th>Qty</th><th>Ref</th></tr></thead><tbody id="ledgerBody"></tbody></table></div></div>
+      </div>
+
+      <!-- VENDORS -->
+      <div class="view" id="view-vendors">
+        <div class="view-head"><h2>Vendors</h2><div class="spacer"></div><button class="btn" onclick="openVendorModal()">+ Add Vendor</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Vendor</th><th>PAN / VAT</th><th>Phone</th><th>Email</th><th>Due (NPR)</th><th>Action</th></tr></thead><tbody id="vendorsBody"></tbody></table></div>
+      </div>
+
+      <!-- DEALERS -->
+      <div class="view" id="view-dealers">
+        <div class="view-head"><h2>Dealers (B2B)</h2><div class="spacer"></div><button class="btn" onclick="openDealerModal()">+ Add Dealer</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Dealer / Shop</th><th>PAN</th><th>Phone</th><th>Location</th><th>Credit Limit</th><th>Due</th><th>Action</th></tr></thead><tbody id="dealersBody"></tbody></table></div>
+      </div>
+
+      <!-- PURCHASE -->
+      <div class="view" id="view-purchase">
+        <div class="view-head"><h2>Purchase Orders</h2><div class="spacer"></div><button class="btn" onclick="openPOModal()">+ New PO</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>PO No</th><th>Date</th><th>Vendor</th><th>Godown</th><th>Items</th><th>Amount (NPR)</th><th>Status</th><th>Action</th></tr></thead><tbody id="poBody"></tbody></table></div>
+      </div>
+
+      <!-- DISPATCH -->
+      <div class="view" id="view-dispatch">
+        <div class="view-head"><h2>Dispatch to Dealers</h2><div class="spacer"></div><button class="btn" onclick="openDispatchModal()">+ New Dispatch</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Challan No</th><th>Date</th><th>Dealer</th><th>Godown</th><th>Items</th><th>Amount (NPR)</th><th>Status</th><th>Action</th></tr></thead><tbody id="dispatchBody"></tbody></table></div>
+      </div>
+
+      <!-- INVOICES -->
+      <div class="view" id="view-invoices">
+        <div class="view-head"><h2>Invoices — VAT 13%</h2><div class="spacer"></div><button class="btn ghost small" onclick="openInvoiceModal('sales')">+ Sales Invoice</button><button class="btn ghost small" onclick="openInvoiceModal('purchase')">+ Purchase Invoice</button></div>
+        <div class="toolbar"><select id="invTypeFilter" onchange="renderInvoices()"><option value="">All</option><option value="sales">Sales</option><option value="purchase">Purchase</option></select><input id="invSearch" placeholder="Invoice no / party" oninput="renderInvoices()"></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Invoice No</th><th>Type</th><th>Date</th><th>Party</th><th>Taxable</th><th>VAT 13%</th><th>Total</th><th>Action</th></tr></thead><tbody id="invBody"></tbody></table></div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div class="view" id="view-payments">
+        <div class="view-head"><h2>Payments</h2><div class="spacer"></div><button class="btn" onclick="openPaymentModal()">+ Add Payment</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Method</th><th>Amount (NPR)</th><th>Ref</th><th>Action</th></tr></thead><tbody id="payBody"></tbody></table></div>
+      </div>
+
+      <!-- EXPENSES -->
+      <div class="view" id="view-expenses">
+        <div class="view-head"><h2>Expenses</h2><div class="spacer"></div><button class="btn" onclick="openExpenseModal()">+ Add Expense</button></div>
+        <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount (NPR)</th><th>Action</th></tr></thead><tbody id="expBody"></tbody></table></div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="view" id="view-reports">
+        <div class="view-head"><h2>Reports</h2></div>
+        <div class="grid3">
+          <div class="card"><h3>VAT Report</h3><div style="display:flex;gap:8px"><input class="form-input" type="month" id="vatMonth"><button class="btn small" onclick="vatReport()">Generate</button></div><div id="vatReport" style="margin-top:10px;font-size:13px"></div></div>
+          <div class="card"><h3>Stock Valuation</h3><div id="valuationBox"></div></div>
+          <div class="card"><h3>Top Selling Parts</h3><div id="topParts"></div></div>
+        </div>
+        <div class="card" style="margin-top:14px"><h3>Profit & Loss</h3><div id="pnlBox"></div></div>
+      </div>
+
+      <!-- MASTERS -->
+      <div class="view" id="view-masters">
+        <div class="view-head"><h2>Masters</h2></div>
+        <div class="grid2">
+          <div class="card"><h3>Categories</h3><div style="display:flex;gap:8px;margin-bottom:8px"><input class="form-input" id="catInput" placeholder="e.g. Engine, Brake"><button class="btn small" onclick="addCategory()">Add</button></div><div id="catList"></div></div>
+          <div class="card"><h3>Brands</h3><div style="display:flex;gap:8px;margin-bottom:8px"><input class="form-input" id="brandInput" placeholder="e.g. Yamaha, Bajaj"><button class="btn small" onclick="addBrand()">Add</button></div><div id="brandList"></div></div>
+        </div>
+        <div class="grid2" style="margin-top:14px">
+          <div class="card"><h3>Godowns</h3><div id="godownList"></div><div style="display:flex;gap:8px;margin-top:8px"><input class="form-input" id="godownName" placeholder="Name"><input class="form-input" id="godownLoc" placeholder="Location"><button class="btn small" onclick="addGodown()">Add</button></div></div>
+          <div class="card"><h3>Units</h3><div style="display:flex;gap:8px;margin-bottom:8px"><input class="form-input" id="unitInput" placeholder="e.g. Pcs, Set, Ltr"><button class="btn small" onclick="addUnit()">Add</button></div><div id="unitList"></div></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings">
+        <div class="view-head"><h2>Settings</h2></div>
+        <div class="grid2">
+          <div class="card"><h3>Company Profile (Invoice Header)</h3>
+            <label class="form-label">Company Name</label><input class="form-input" id="cmpName" placeholder="Your Company Pvt Ltd">
+            <label class="form-label">PAN / VAT No</label><input class="form-input" id="cmpPan" placeholder="e.g. 602...">
+            <label class="form-label">Address</label><input class="form-input" id="cmpAddr" placeholder="Kathmandu, Nepal">
+            <label class="form-label">Phone / Email</label><div class="row"><input class="form-input" id="cmpPhone" placeholder="Phone"><input class="form-input" id="cmpEmail" placeholder="Email"></div>
+            <label class="form-label">VAT %</label><input class="form-input" id="cmpVat" type="number" value="13">
+            <button class="btn" style="margin-top:10px" onclick="saveCompany()">Save</button>
+          </div>
+          <div class="card"><h3>Users & Password</h3>
+            <label class="form-label">New Password</label><input class="form-input" id="newPass" type="password">
+            <button class="btn" style="margin-top:8px" onclick="changePass()">Change Password</button>
+            <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px"><h3>Backup</h3><p style="font-size:12px;color:var(--muted)">R2 daily backup + manual</p><button class="btn ghost small" onclick="doBackup()">Backup Now</button> <button class="btn ghost small" onclick="loadBackups()">List Backups</button><div id="backupList" style="margin-top:8px;font-size:12px"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="overlay"><div class="modal" id="modal"><h3 id="modalTitle">Modal</h3><div id="modalBody"></div><div class="modal-actions"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn" id="modalSave">Save</button></div></div></div>
+<div class="overlay" id="importOverlay"><div class="modal"><h3>Import Parts (Excel / CSV)</h3><p style="font-size:12px;color:var(--muted)">Columns: <b>name</b> required, <b>sku auto if blank</b> — also: category, brand, oem, mrp, cost, unit, godownA, godownB, minStock. Header row required. 5000+ rows OK.</p><input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="margin:10px 0"><div id="importPreview" style="max-height:220px;overflow:auto;font-size:12px"></div><div class="modal-actions"><button class="btn ghost" onclick="document.getElementById('importOverlay').classList.remove('on')">Close</button><button class="btn" onclick="doImport()">Import</button></div></div></div>
+
+<script>
+const DB_ENDPOINT = localStorage.getItem('moto_endpoint') || 'https://moto-logistics.info-thedimetechnology.workers.dev';
+let AUTH = JSON.parse(localStorage.getItem('moto_auth')||'null');
+// migrate old admin -> mariyammotors / 123456789
+if(AUTH && AUTH.username==='admin'){ AUTH={username:'mariyammotors', password:'123456789'}; localStorage.setItem('moto_auth', JSON.stringify(AUTH)); }
+const LS_KEY='moto_data_v1';
+const VAT_DEFAULT=13;
+let S = loadLocal();
+// Force branding to Mariyam Motors PAN 123456789 (migration from old MotoLogistics)
+if(S.company && S.company.pan !== '123456789'){
+  S.company.name = 'Mariyam Motors';
+  S.company.pan = '123456789';
+  if(!S.company.email || S.company.email.includes('motologistics')) S.company.email='info@mariyammotors.com.np';
+  saveLocal();
+}
+// migrate Godown A/B -> Godown Name + Quantity
+let _migrated=false;
+S.parts.forEach(p=>{
+  if(p.stockA!==undefined || p.stockB!==undefined){
+    const tot=(Number(p.stockA||0)+Number(p.stockB||0));
+    p.qty=tot;
+    const preferB=(Number(p.stockB||0) > Number(p.stockA||0));
+    const gid= preferB ? (S.godowns[1]?.id||S.godowns[0]?.id) : (S.godowns[0]?.id);
+    p.godownId = p.godownId || gid;
+    p.godownName = S.godowns.find(g=>g.id===p.godownId)?.name || S.godowns[0]?.name || 'Main Godown';
+    delete p.stockA; delete p.stockB; _migrated=true;
+  }
+  if(p.qty===undefined) p.qty=0;
+  if(p.godownId===undefined) p.godownId=S.godowns[0]?.id||'g1';
+  if(!p.godownName) p.godownName=S.godowns.find(g=>g.id===p.godownId)?.name||S.godowns[0]?.name||'Main Godown';
+});
+if(_migrated) saveLocal();
+let partsPage=0, pageSize=25;
+let pendingImportRows=[];
+
+function loadLocal(){
+  try{ const v=JSON.parse(localStorage.getItem(LS_KEY)||'null'); if(v) return v; }catch(_){}
+  return {
+    parts:[], categories:['Engine','Brake','Electrical','Body','Accessories','Lubricants'], brands:['Yamaha','Bajaj','Honda','TVS','Hero','Suzuki'], units:['Pcs','Set','Pair','Ltr','Kit'],
+    godowns:[{id:'g1',name:'Main Godown',location:'Kathmandu',code:'GD-01'},{id:'g2',name:'Secondary Godown',location:'Biratnagar',code:'GD-02'}],
+    vendors:[], dealers:[], purchaseOrders:[], grns:[], dispatchOrders:[], salesInvoices:[], purchaseInvoices:[], payments:[], expenses:[], inventoryLedger:[], users:[],
+    company:{name:'Mariyam Motors', pan:'123456789', addr:'Kathmandu, Nepal', phone:'+977-9800000000', email:'info@mariyammotors.com.np', vat:13}
+  };
+}
+function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function genSKU(cat, br){
+  // Format like HR-CH-201, YL-BRK-001, BJ-ENG-042 (Brand-Category-3digits)
+  const brandMap={ 'Yamaha':'YL','Bajaj':'BJ','Honda':'HN','TVS':'TVS','Hero':'HR','Suzuki':'SU' };
+  const brandCode=(brandMap[br] || (br||'GEN').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase().padEnd(2,'X')).slice(0,3);
+  const catMap={ 'Engine':'ENG','Brake':'BRK','Electrical':'EL','Body':'BD','Accessories':'ACC','Lubricants':'LUB' };
+  let catCode=catMap[cat] || (cat||'GEN').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase().padEnd(2,'X');
+  if(catCode.length===3 && ['ENG','BRK','ACC','LUB'].includes(catCode)) catCode=catCode.slice(0,3);
+  else if(catCode.length>2) catCode=catCode.slice(0,2);
+  // next sequence: max existing suffix +1
+  let max=0; S.parts.forEach(p=>{
+    const m=p.sku.match(/-(\d{3,4})$/);
+    if(m) max=Math.max(max, parseInt(m[1],10));
+    const m2=p.sku.match(/-(\d+)[A-Z]*$/);
+    if(m2) max=Math.max(max, parseInt(m2[1],10));
+  });
+  const seq=(max+1).toString().padStart(3,'0');
+  const sku=`${brandCode}-${catCode}-${seq}`;
+  if(S.parts.some(p=>p.sku===sku)) return `${brandCode}-${catCode}-${(max+2).toString().padStart(3,'0')}`;
+  return sku;
+}
+function fmt(n){ return 'NPR ' + Number(n||0).toLocaleString('en-NP', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function calcTotals(lines, vatPct){
+  const taxable = lines.reduce((s,l)=> s + (Number(l.qty||0)*Number(l.rate||0)), 0);
+  const vat = taxable * (vatPct/100);
+  const total = taxable + vat;
+  return {taxable, vat, total};
+}
+function ensureDemo(){
+  if(S.parts.length) return;
+  const g1=S.godowns[0]?.id||'g1', g2=S.godowns[1]?.id||'g2';
+  const n1=S.godowns[0]?.name||'Main Godown', n2=S.godowns[1]?.name||'Secondary Godown';
+  const demo=[
+    {sku:'YL-BRK-001',name:'Front Brake Pad — Yamaha R15',category:'Brake',brand:'Yamaha',oem:'5EB-W0045',mrp:2850,cost:1950,unit:'Set',qty:106,godownId:g1,godownName:n1,min:10},
+    {sku:'BJ-ENG-042',name:'Engine Oil 10W30 — Bajaj Pulsar',category:'Lubricants',brand:'Bajaj',oem:'DJ101043',mrp:950,cost:680,unit:'Ltr',qty:255,godownId:g1,godownName:n1,min:30},
+    {sku:'HN-EL-113',name:'Spark Plug CPR8EA-9',category:'Electrical',brand:'Honda',oem:'98079-55846',mrp:450,cost:280,unit:'Pcs',qty:15,godownId:g1,godownName:n1,min:20},
+    {sku:'TVS-BD-089',name:'Side Mirror LH — Apache',category:'Body',brand:'TVS',oem:'N9122110',mrp:1250,cost:890,unit:'Pcs',qty:43,godownId:g2,godownName:n2,min:10},
+    {sku:'HR-CH-201',name:'Chain Sprocket Kit — Splendor',category:'Engine',brand:'Hero',oem:'428H-102L',mrp:3200,cost:2450,unit:'Kit',qty:18,godownId:g1,godownName:n1,min:5},
+    {sku:'SU-ACC-055',name:'Helmet Studds — Black (L)',category:'Accessories',brand:'Suzuki',oem:'ACC-HEL-L',mrp:5500,cost:4100,unit:'Pcs',qty:39,godownId:g2,godownName:n2,min:5},
+  ];
+  demo.forEach(d=> S.parts.push({id:uid(), ...d}));
+  S.vendors.push({id:uid(), name:'Shree Auto Parts', pan:'601234567', phone:'+977 98510 12345', email:'shree@parts.np', addr:'Putalisadak, Kathmandu'});
+  S.dealers.push({id:uid(), name:'Bajaj Showroom — Pokhara', pan:'602345678', phone:'+977 98460 11111', loc:'Pokhara', credit:200000, due:45000});
+  saveLocal();
+}
+ensureDemo();
+
+// Auth & Sync
+const boot=document.getElementById('boot'), authWrap=document.getElementById('authWrap'), app=document.getElementById('app');
+function showAuth(){ authWrap.style.display='flex'; boot.classList.add('hide'); }
+function showApp(){ authWrap.style.display='none'; app.classList.add('on'); boot.classList.add('hide'); document.getElementById('whoBox').childNodes[0].textContent = (AUTH?.username||'admin')+' '; }
+async function tryAutoLogin(){
+  if(!AUTH){ showAuth(); return; }
+  if(!DB_ENDPOINT){ showApp(); refreshAll(); setOnline(false); return; }
+  const ok = await api('getAll', AUTH);
+  if(ok?.ok){ mergeFromServer(ok.data); showApp(); setOnline(true); } else { showAuth(); }
+}
+async function api(action, creds, data){
+  if(!DB_ENDPOINT) return null;
+  try{ const r=await fetch(DB_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, username:creds.username, password:creds.password, data})}); return await r.json(); }catch(e){ setOnline(false); return null; }
+}
+function mergeFromServer(d){
+  if(!d) return;
+  ['parts','categories','brands','units','godowns','vendors','dealers','purchaseOrders','grns','dispatchOrders','salesInvoices','purchaseInvoices','payments','expenses','inventoryLedger'].forEach(k=>{ if(Array.isArray(d[k])) S[k]=d[k]; });
+  if(d.company) S.company=Object.assign(S.company,d.company);
+  if(d.financeData) Object.assign(S, d.financeData);
+  if(d.settings?.company) S.company = d.settings.company;
+  saveLocal(); refreshAll();
+}
+async function sync(){
+  if(!AUTH) return;
+  if(!DB_ENDPOINT){ saveLocal(); toast('Saved locally (no worker endpoint)','ok'); return; }
+  setOnline(null);
+  const payload={ parts:S.parts, categories:S.categories, brands:S.brands, units:S.units, godowns:S.godowns, vendors:S.vendors, dealers:S.dealers, purchaseOrders:S.purchaseOrders, grns:S.grns, dispatchOrders:S.dispatchOrders, salesInvoices:S.salesInvoices, purchaseInvoices:S.purchaseInvoices, payments:S.payments, expenses:S.expenses, inventoryLedger:S.inventoryLedger, financeData:{}, appSettings:{company:S.company} };
+  const r=await api('saveAll', AUTH, payload);
+  if(r?.ok){ toast('Synced','ok'); setOnline(true); } else { toast(r?.error||'Sync failed','err'); setOnline(false); saveLocal(); }
+}
+function setOnline(on){ const d=document.getElementById('dot'), t=document.getElementById('statusTxt'); if(on===null){ d.style.background='#f59e0b'; t.textContent='Syncing…'; } else if(on){ d.classList.add('on'); t.textContent='Online'; } else { d.classList.remove('on'); t.textContent= DB_ENDPOINT? 'Offline':'Local'; } }
+
+document.getElementById('authBtn').onclick=async()=>{
+  const u=document.getElementById('authUser').value.trim(), p=document.getElementById('authPass').value;
+  if(!u||!p) return toast('Enter username & password','err');
+  AUTH={username:u,password:p}; localStorage.setItem('moto_auth', JSON.stringify(AUTH));
+  if(!DB_ENDPOINT){ showApp(); refreshAll(); setOnline(false); toast('Logged in (local mode)','ok'); return; }
+  const r=await api('getAll', AUTH);
+  if(!r?.ok){ document.getElementById('authErr').textContent=r?.error||'Login failed'; return; }
+  mergeFromServer(r.data); showApp(); setOnline(true); toast('Welcome','ok');
+};
+document.getElementById('logoutBtn').onclick=()=>{ localStorage.removeItem('moto_auth'); location.reload(); };
+document.getElementById('syncBtn').onclick=sync;
+document.getElementById('menuBtn').onclick=()=> document.getElementById('sidebar').classList.toggle('open');
+tryAutoLogin();
+
+// Nav
+document.querySelectorAll('.nav-item').forEach(el=> el.onclick=()=>{
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); el.classList.add('active');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+el.dataset.view).classList.add('on');
+  document.getElementById('crumb').innerHTML = el.textContent + ' <span>•</span>';
+  document.getElementById('sidebar').classList.remove('open');
+  refreshView(el.dataset.view);
+});
+
+// Helpers
+function toast(m, t){ const el=document.createElement('div'); el.textContent=m; el.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:'+(t==='ok'?'#16a34a':t==='err'?'#dc2626':'#0f172a')+';color:#fff;padding:10px 16px;border-radius:8px;z-index:99;font-size:13px'; document.body.appendChild(el); setTimeout(()=>el.remove(),2200); }
+function openModal(title, bodyHtml, onSave){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=bodyHtml;
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('modalSave').onclick=()=>{ if(onSave) onSave(); };
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('on'); }
+
+// Refresh
+function refreshAll(){ renderStats(); renderParts(); renderGodown(); renderVendors(); renderDealers(); renderPO(); renderDispatch(); renderInvoices(); renderPayments(); renderExpenses(); renderMasters(); renderReports(); }
+function refreshView(v){
+  if(v==='dashboard') renderStats();
+  if(v==='parts') renderParts();
+  if(v==='godown') renderGodown();
+  if(v==='vendors') renderVendors();
+  if(v==='dealers') renderDealers();
+  if(v==='purchase') renderPO();
+  if(v==='dispatch') renderDispatch();
+  if(v==='invoices') renderInvoices();
+  if(v==='payments') renderPayments();
+  if(v==='expenses') renderExpenses();
+  if(v==='reports') renderReports();
+  if(v==='masters') renderMasters();
+}
+
+// Dashboard
+function renderStats(){
+  const totalParts=S.parts.length;
+  const totalStock=S.parts.reduce((s,p)=>s+Number(p.qty||0),0);
+  const stockVal=S.parts.reduce((s,p)=>s+ Number(p.qty||0)*Number(p.cost||0),0);
+  const low=S.parts.filter(p=> Number(p.qty||0) <= Number(p.min||5)).length;
+  const poPending=S.purchaseOrders.filter(x=>x.status!=='Received').length;
+  const disPending=S.dispatchOrders.filter(x=>x.status!=='Delivered').length;
+  const salesTotal=S.salesInvoices.reduce((s,x)=>s+Number(x.total||0),0);
+  document.getElementById('stats').innerHTML=`
+    <div class="stat accent" style="background:linear-gradient(135deg,#0f5b9a,#0a3d66)"><div class="lbl">Total SKUs</div><div class="num">${totalParts}</div><div class="sub">${totalStock} units in stock</div></div>
+    <div class="stat accent" style="background:linear-gradient(135deg,#0e8a5a,#0a5c3d)"><div class="lbl">Stock Value (Cost)</div><div class="num">${fmt(stockVal)}</div><div class="sub">Across ${S.godowns.length} godowns</div></div>
+    <div class="stat accent" style="background:linear-gradient(135deg,#c07a00,#8a5600)"><div class="lbl">Low Stock</div><div class="num">${low}</div><div class="sub">${poPending} POs pending</div></div>
+    <div class="stat accent" style="background:linear-gradient(135deg,#7c3aed,#4c1d95)"><div class="lbl">Sales (Invoiced)</div><div class="num">${fmt(salesTotal)}</div><div class="sub">${disPending} dispatches pending</div></div>`;
+  const lows=S.parts.filter(p=> Number(p.qty||0) <= Number(p.min||5)).slice(0,6);
+  document.getElementById('lowStock').innerHTML = lows.length? lows.map(p=> `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${p.sku} — ${p.name}</span><span class="badge r">${p.qty} left • ${p.godownName||''}</span></div>`).join('') : `<div class="empty">No low stock</div>`;
+  document.getElementById('recentDispatch').innerHTML = S.dispatchOrders.slice(-5).reverse().map(d=> `<div style="padding:7px 0;border-bottom:1px solid var(--line);font-size:12px"><b>${d.challanNo}</b> → ${d.dealerName} <span class="badge ${d.status==='Delivered'?'g':'o'}" style="float:right">${d.status}</span><div style="color:var(--muted)">${d.date} • ${fmt(d.total)}</div></div>`).join('') || `<div class="empty">No dispatches</div>`;
+  const godownVals=S.godowns.map(g=> S.parts.filter(p=>p.godownId===g.id).reduce((s,p)=>s+Number(p.qty||0)*Number(p.cost||0),0));
+  document.getElementById('stockByGodown').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    ${S.godowns.map((g,i)=> `<div style="padding:12px;border:1px solid var(--line);border-radius:10px"><div style="font-weight:700">${g.name}</div><div style="font-size:12px;color:var(--muted)">${g.location} • ${g.code}</div><div style="font-weight:800;margin-top:6px">${fmt(godownVals[i]||0)}</div></div>`).join('')}
+  </div>`;
+}
+
+// Parts
+function renderParts(){
+  const q=(document.getElementById('partSearch').value||'').toLowerCase();
+  const cf=document.getElementById('partCatFilter').value, bf=document.getElementById('partBrandFilter').value, gf=document.getElementById('partGodownFilter').value, sf=document.getElementById('partStockFilter').value;
+  // populate filters once
+  const catSel=document.getElementById('partCatFilter'); if(catSel.options.length===1){ S.categories.forEach(c=>{ const o=document.createElement('option');o.value=c;o.textContent=c;catSel.appendChild(o); }); }
+  const brSel=document.getElementById('partBrandFilter'); if(brSel.options.length===1){ S.brands.forEach(b=>{ const o=document.createElement('option');o.value=b;o.textContent=b;brSel.appendChild(o); }); }
+  const gSel=document.getElementById('partGodownFilter'); if(gSel.options.length===1){ S.godowns.forEach(g=>{ const o=document.createElement('option');o.value=g.id;o.textContent=g.name;gSel.appendChild(o); }); }
+
+  let arr=S.parts.filter(p=>{
+    if(q && !(p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q) || (p.oem||'').toLowerCase().includes(q))) return false;
+    if(cf && p.category!==cf) return false;
+    if(bf && p.brand!==bf) return false;
+    if(gf && p.godownId!==gf) return false;
+    const qty=Number(p.qty||0);
+    if(sf==='low' && qty> Number(p.min||5)) return false;
+    if(sf==='out' && qty>0) return false;
+    if(sf==='ok' && qty<= Number(p.min||5)) return false;
+    return true;
+  });
+  document.getElementById('partsCount').textContent = `${arr.length} items`;
+  const maxPage=Math.max(0, Math.ceil(arr.length/pageSize)-1); if(partsPage>maxPage) partsPage=maxPage; if(partsPage<0) partsPage=0;
+  document.getElementById('partsPageInfo').textContent=`Page ${partsPage+1} / ${maxPage+1}`;
+  arr = arr.slice(partsPage*pageSize, (partsPage+1)*pageSize);
+  document.getElementById('partsBody').innerHTML = arr.map(p=>{
+    const qty=Number(p.qty||0);
+    const badge = qty===0? 'r' : qty<=Number(p.min||5)? 'o':'g';
+    return `<tr>
+      <td><b>${p.sku}</b><div style="font-size:11px;color:var(--muted)">${p.oem||''}</div><svg class="barcode" data-sku="${p.sku}" style="height:30px;display:block;margin-top:4px"></svg></td>
+      <td>${p.name}<div style="font-size:11px;color:var(--muted)">${p.unit||'Pcs'}</div></td>
+      <td><span class="badge gr">${p.category}</span></td>
+      <td>${p.brand}</td>
+      <td>${fmt(p.mrp)}</td>
+      <td>${fmt(p.cost)}</td>
+      <td><span class="badge b">${p.godownName||''}</span></td>
+      <td><span class="badge ${badge}">${qty}</span></td>
+      <td><button class="btn ghost small" onclick="openPartModal('${p.id}')">Edit</button> <button class="btn ghost small" onclick="delPart('${p.id}')">Del</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="9" class="empty">No parts found — add or import</td></tr>`;
+  // render barcodes
+  setTimeout(()=> document.querySelectorAll('.barcode').forEach(el=>{
+    try{ JsBarcode(el, el.dataset.sku, {format:'CODE128', width:1.2, height:26, displayValue:false, margin:0}); }catch(_){}
+  }), 80);
+}
+function openPartModal(id){
+  const p = id? S.parts.find(x=>x.id===id): null;
+  const isNew=!p;
+  const autoSKU = p?.sku || genSKU(p?.category, p?.brand);
+  const html=`
+    <label class="form-label">SKU * / Barcode <span style="font-weight:400;color:var(--muted2);font-size:11px">(auto-generated)</span></label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input class="form-input" id="f_sku" value="${autoSKU}" placeholder="auto" readonly style="background:#f8fafc;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:.5px">
+      <button class="btn ghost small" type="button" onclick="document.getElementById('f_sku').value=genSKU(document.getElementById('f_cat').value, document.getElementById('f_brand').value); updateSkuPreview()">↻ Regen</button>
+      <button class="btn ghost small" type="button" onclick="const el=document.getElementById('f_sku'); el.readOnly=!el.readOnly; el.style.background=el.readOnly?'#f8fafc':'#fff'; if(!el.readOnly){el.focus(); el.select();}">✎ Edit</button>
+    </div>
+    <div style="margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center"><svg id="skuPreview" style="height:38px"></svg><div style="font-size:10px;color:var(--muted)" id="skuPreviewTxt">${autoSKU}</div></div>
+    <div class="row"><div><label class="form-label">Part Name *</label><input class="form-input" id="f_name" value="${p?.name||''}"></div><div><label class="form-label">OEM No</label><input class="form-input" id="f_oem" value="${p?.oem||''}"></div></div>
+    <div class="row"><div><label class="form-label">Category</label><select class="form-input" id="f_cat">${S.categories.map(c=>`<option ${p?.category===c?'selected':''}>${c}</option>`).join('')}</select></div><div><label class="form-label">Brand</label><select class="form-input" id="f_brand">${S.brands.map(b=>`<option ${p?.brand===b?'selected':''}>${b}</option>`).join('')}</select></div><div><label class="form-label">Unit</label><select class="form-input" id="f_unit">${S.units.map(u=>`<option ${p?.unit===u?'selected':''}>${u}</option>`).join('')}</select></div></div>
+    <div class="row"><div><label class="form-label">MRP (NPR)</label><input class="form-input" id="f_mrp" type="number" value="${p?.mrp||''}"></div><div><label class="form-label">Cost (NPR)</label><input class="form-input" id="f_cost" type="number" value="${p?.cost||''}"></div><div><label class="form-label">Min Stock</label><input class="form-input" id="f_min" type="number" value="${p?.min||5}"></div></div>
+    <div class="row"><div><label class="form-label">Godown Name</label><select class="form-input" id="f_godown">${S.godowns.map(g=>`<option value="${g.id}" ${p?.godownId===g.id?'selected':''}>${g.name} — ${g.location}</option>`).join('')}</select></div><div><label class="form-label">Quantity</label><input class="form-input" id="f_qty" type="number" value="${p?.qty||0}"></div></div>
+  `;
+  openModal(isNew?'Add Part':'Edit Part (SKU locked — use Edit to change)', html, ()=>{
+    const sku=document.getElementById('f_sku').value.trim(), name=document.getElementById('f_name').value.trim();
+    if(!sku||!name) return toast('SKU and Name required','err');
+    const godownId=document.getElementById('f_godown').value, godownName=S.godowns.find(g=>g.id===godownId)?.name||'';
+    const obj={ id:p?.id||uid(), sku, name, oem:document.getElementById('f_oem').value.trim(), category:document.getElementById('f_cat').value, brand:document.getElementById('f_brand').value, unit:document.getElementById('f_unit').value, mrp:Number(document.getElementById('f_mrp').value||0), cost:Number(document.getElementById('f_cost').value||0), min:Number(document.getElementById('f_min').value||5), godownId, godownName, qty:Number(document.getElementById('f_qty').value||0) };
+    if(S.parts.some(x=>x.sku===sku && x.id!==obj.id)) return toast('SKU already exists','err');
+    if(p){ Object.assign(p,obj); } else S.parts.push(obj);
+    if(isNew){ S.inventoryLedger.push({date:today(), sku, name, type:'Opening', godown:obj.godownName, qty:obj.qty, ref:'New part'}); }
+    saveLocal(); closeModal(); renderParts(); renderGodown(); sync();
+  });
+  setTimeout(()=>{
+    const upd=()=>{
+      const v=document.getElementById('f_sku')?.value||'';
+      const t=document.getElementById('skuPreviewTxt'); if(t) t.textContent=v;
+      try{ const el=document.getElementById('skuPreview'); if(el) JsBarcode(el, v||'MM-XXX', {format:'CODE128', width:1.4, height:32, displayValue:false, margin:0}); }catch(_){}
+    };
+    window.updateSkuPreview=upd;
+    upd();
+    document.getElementById('f_sku')?.addEventListener('input', upd);
+    document.getElementById('f_cat')?.addEventListener('change', ()=>{ if(isNew){ document.getElementById('f_sku').value=genSKU(document.getElementById('f_cat').value, document.getElementById('f_brand').value); upd(); }});
+    document.getElementById('f_brand')?.addEventListener('change', ()=>{ if(isNew){ document.getElementById('f_sku').value=genSKU(document.getElementById('f_cat').value, document.getElementById('f_brand').value); upd(); }});
+  },80);
+}
+function delPart(id){ if(!confirm('Delete part?')) return; S.parts=S.parts.filter(x=>x.id!==id); saveLocal(); renderParts(); sync(); }
+function openImport(){ document.getElementById('importOverlay').classList.add('on'); }
+document.getElementById('importFile')?.addEventListener('change', async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const ext=f.name.split('.').pop().toLowerCase();
+  let rows=[];
+  if(ext==='csv'){
+    const txt=await f.text(); rows=txt.split(/\r?\n/).filter(Boolean).map(r=> r.split(',').map(s=>s.trim().replace(/^"|"$/g,'')));
+  } else {
+    const buf=await f.arrayBuffer(); const wb=XLSX.read(buf,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; rows=XLSX.utils.sheet_to_json(ws,{header:1});
+  }
+  const header=(rows[0]||[]).map(h=>String(h).toLowerCase().trim());
+  const need=['name']; if(!need.every(h=>header.includes(h))) { document.getElementById('importPreview').innerHTML='<span style="color:var(--red)">Header must include name (sku auto if blank — also: category, brand, oem, mrp, cost, unit, godowna, godownb, minstock)</span>'; return; }
+  const idx=(k)=> header.indexOf(k);
+  pendingImportRows = rows.slice(1).filter(r=> r[idx('name')] ).map(r=> {
+    const cat=String(r[idx('category')]||'Engine').trim(), br=String(r[idx('brand')]||'Generic').trim();
+    let sk=String(r[idx('sku')]||'').trim(); if(!sk) sk=genSKU(cat,br);
+    // support both new (godownname/quantity) and old (godowna/godownb)
+    let qty=Number(r[idx('quantity')] ?? r[idx('qty')] ?? r[idx('stock')] ?? '');
+    if(!qty && (r[idx('godowna')]!==undefined || r[idx('godownb')]!==undefined)) qty=Number(r[idx('godowna')]||0)+Number(r[idx('godownb')]||0);
+    if(!qty) qty=0;
+    let gName=String(r[idx('godownname')] ?? r[idx('godown')] ?? r[idx('godown_name')] ?? '').trim();
+    let gid=S.godowns.find(g=>g.name.toLowerCase()===gName.toLowerCase())?.id;
+    if(!gid) { gid=S.godowns[0]?.id||'g1'; gName=S.godowns.find(g=>g.id===gid)?.name||gName||S.godowns[0]?.name; }
+    else gName=S.godowns.find(g=>g.id===gid)?.name;
+    return { sku:sk, name:String(r[idx('name')]||'').trim(), category:cat, brand:br, oem:String(r[idx('oem')]||r[idx('oem no')]||''), mrp:Number(r[idx('mrp')]||0), cost:Number(r[idx('cost')]||0), unit:String(r[idx('unit')]||'Pcs').trim(), godownId:gid, godownName:gName, qty, min:Number(r[idx('minstock')]||r[idx('min')]||5) };
+  });
+  document.getElementById('importPreview').innerHTML=`<b>${pendingImportRows.length} rows ready</b><div style="max-height:160px;overflow:auto;margin-top:6px">`+ pendingImportRows.slice(0,20).map(r=> `<div style="padding:4px 0;border-bottom:1px solid var(--line)">${r.sku} — ${r.name} — ${r.mrp}</div>`).join('') + `</div>`;
+});
+function doImport(){
+  if(!pendingImportRows.length) return toast('No rows','err');
+  let added=0, updated=0;
+  pendingImportRows.forEach(r=>{
+    const ex=S.parts.find(x=>x.sku===r.sku);
+    if(ex){ Object.assign(ex,r); updated++; } else { S.parts.push({id:uid(), ...r}); added++; }
+  });
+  saveLocal(); document.getElementById('importOverlay').classList.remove('on'); toast(`Imported: ${added} new, ${updated} updated`,'ok'); renderParts(); sync();
+}
+function exportParts(){
+  const rows=[['sku','name','category','brand','oem','mrp','cost','unit','godownName','quantity','minStock']].concat(S.parts.map(p=> [p.sku,p.name,p.category,p.brand,p.oem,p.mrp,p.cost,p.unit,p.godownName,p.qty,p.min]));
+  const ws=XLSX.utils.aoa_to_sheet(rows); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Parts'); XLSX.writeFile(wb,'parts-export.xlsx');
+}
+function exportAll(){
+  const wb=XLSX.utils.book_new();
+  const add=(name, arr, cols)=>{ const rows=[cols].concat(arr.map(o=> cols.map(c=> o[c]??''))); const ws=XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb,ws,name); };
+  add('Parts', S.parts, ['sku','name','category','brand','oem','mrp','cost','unit','godownName','qty','min']);
+  add('Vendors', S.vendors, ['name','pan','phone','email','addr']);
+  add('Dealers', S.dealers, ['name','pan','phone','loc','credit']);
+  add('PurchaseOrders', S.purchaseOrders, ['poNo','date','vendorName','godownName','total','status']);
+  add('Dispatch', S.dispatchOrders, ['challanNo','date','dealerName','godownName','total','status']);
+  XLSX.writeFile(wb,'MariyamMotors-export.xlsx');
+}
+function openBarcodeBulk(){
+  const html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:60vh;overflow:auto" id="bcGrid">${S.parts.slice(0,24).map(p=> `<div style="border:1px solid var(--line);padding:8px;text-align:center;border-radius:8px"><div style="font-size:11px;font-weight:700">${p.sku}</div><svg class="bc2" data-sku="${p.sku}"></svg><div style="font-size:11px">${p.name.slice(0,22)}</div></div>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin-top:8px">Print this dialog (Ctrl+P). First 24 SKUs shown.</p>`;
+  openModal('Barcode Print — 24 up', html, ()=> window.print());
+  setTimeout(()=> document.querySelectorAll('.bc2').forEach(el=>{ try{ JsBarcode(el, el.dataset.sku, {format:'CODE128',width:1.1,height:38,displayValue:true,fontSize:11}); }catch(_){} }), 120);
+}
+
+// Godown
+function renderGodown(){
+  S.godowns.forEach((g,i)=>{
+    const inG=S.parts.filter(p=>p.godownId===g.id);
+    const stock = inG.map(p=> ({p, qty:Number(p.qty||0)})).filter(x=>x.qty>0).slice(0,20);
+    const val = inG.reduce((s,p)=> s + Number(p.qty||0)*Number(p.cost||0), 0);
+    const box=document.getElementById(i===0?'godownABox':'godownBBox');
+    if(!box) return;
+    box.innerHTML=`<h3>${g.name} <span class="badge b">${g.code}</span></h3><div style="font-size:12px;color:var(--muted)">${g.location} • ${inG.length} SKUs • Valuation ${fmt(val)}</div>
+      <div style="max-height:260px;overflow:auto;margin-top:8px"><table><thead><tr><th>SKU</th><th>Part</th><th>Qty</th></tr></thead><tbody>${stock.map(s=>`<tr><td>${s.p.sku}</td><td>${s.p.name.slice(0,28)}</td><td><b>${s.qty}</b></td></tr>`).join('')||`<tr><td colspan="3" class="empty">No stock in this godown</td></tr>`}</tbody></table></div>`;
+  });
+  document.getElementById('ledgerBody').innerHTML = S.inventoryLedger.slice(-50).reverse().map(l=> `<tr><td>${l.date}</td><td>${l.sku}</td><td>${l.name}</td><td><span class="badge ${l.type==='In'?'g':l.type==='Out'?'r':'b'}">${l.type}</span></td><td>${l.godown}</td><td>${l.qty}</td><td>${l.ref}</td></tr>`).join('') || `<tr><td colspan="7" class="empty">No ledger</td></tr>`;
+}
+function openStockIn(){
+  const html=`<label class="form-label">Godown</label><select class="form-input" id="si_godown">${S.godowns.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
+    <label class="form-label">SKU</label><input class="form-input" id="si_sku" list="skuList" placeholder="Type SKU"><datalist id="skuList">${S.parts.map(p=>`<option value="${p.sku}">${p.godownName} — ${p.sku}` ).join('')}</datalist>
+    <label class="form-label">Qty</label><input class="form-input" id="si_qty" type="number" value="10">
+    <label class="form-label">Ref (PO/Challan)</label><input class="form-input" id="si_ref" placeholder="PO-...">`;
+  openModal('Stock In', html, ()=>{
+    const godown=document.getElementById('si_godown').value, sku=document.getElementById('si_sku').value.trim(), qty=Number(document.getElementById('si_qty').value||0), ref=document.getElementById('si_ref').value.trim();
+    const p=S.parts.find(x=>x.sku===sku); if(!p) return toast('SKU not found','err');
+    const gName=S.godowns.find(g=>g.id===godown)?.name||godown;
+    if(p.godownId!==godown){
+      // move part to selected godown if different
+      p.godownId=godown; p.godownName=gName;
+    }
+    p.qty=(Number(p.qty||0)+qty);
+    S.inventoryLedger.push({date:today(), sku:p.sku, name:p.name, type:'In', godown:gName, qty, ref});
+    saveLocal(); closeModal(); renderParts(); renderGodown(); sync();
+  });
+}
+function openStockAdjust(){
+  const html=`<label class="form-label">SKU</label><input class="form-input" id="sa_sku" list="skuList2" placeholder="SKU"><datalist id="skuList2">${S.parts.map(p=>`<option value="${p.sku}">${p.godownName} — ${p.sku}` ).join('')}</datalist>
+    <label class="form-label">New Qty (set absolute)</label><input class="form-input" id="sa_qty" type="number" placeholder="Current qty will be replaced">`;
+  openModal('Stock Adjust', html, ()=>{
+    const sku=document.getElementById('sa_sku').value.trim(), qty=Number(document.getElementById('sa_qty').value);
+    const p=S.parts.find(x=>x.sku===sku); if(!p) return toast('SKU not found','err');
+    const old=Number(p.qty||0);
+    const diff=qty-old;
+    p.qty=qty;
+    S.inventoryLedger.push({date:today(), sku:p.sku, name:p.name, type:'Adjust', godown:p.godownName, qty:diff, ref:'Adjust to '+qty});
+    saveLocal(); closeModal(); renderGodown(); renderParts(); sync();
+  });
+}
+function openTransfer(){
+  const html=`<label class="form-label">SKU</label><input class="form-input" id="tr_sku" list="skuList3" placeholder="SKU"><datalist id="skuList3">${S.parts.map(p=>`<option value="${p.sku}">${p.godownName} — ${p.sku} (${p.qty})` ).join('')}</datalist>
+    <label class="form-label">To Godown</label><select class="form-input" id="tr_to">${S.godowns.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
+    <label class="form-label">Qty to Transfer</label><input class="form-input" id="tr_qty" type="number" value="5">`;
+  openModal('Transfer Godown', html, ()=>{
+    const sku=document.getElementById('tr_sku').value.trim(), to=document.getElementById('tr_to').value, qty=Number(document.getElementById('tr_qty').value||0);
+    const p=S.parts.find(x=>x.sku===sku); if(!p) return toast('SKU not found','err');
+    if(p.godownId===to) return toast('Already in that godown','err');
+    if(qty>Number(p.qty||0)) return toast('Not enough stock','err');
+    const fromName=p.godownName, toName=S.godowns.find(g=>g.id===to)?.name||to;
+    // For single-location model, transfer means change godown if moving all qty, or partial would need split. Simplify: if qty < p.qty, create a separate? For now move whole qty or change godown and adjust qty.
+    if(qty < Number(p.qty||0)){
+      // partial transfer: reduce current qty and if target has same SKU, add there (else clone)
+      p.qty = Number(p.qty||0) - qty;
+      let target=S.parts.find(x=>x.sku===sku && x.godownId===to);
+      if(target){ target.qty = Number(target.qty||0)+qty; }
+      else {
+        // clone part for target godown with same sku but different id? Keep sku unique constraint will fail, so we merge? Instead keep single sku and just change godown to target and keep qty as moved qty? For simplicity, just change godown if full transfer
+        // For partial, we will keep original p with reduced qty and create duplicate with new id
+        const clone={...p, id:uid(), godownId:to, godownName:toName, qty};
+        S.parts.push(clone);
+      }
+    } else {
+      p.godownId=to; p.godownName=toName;
+    }
+    S.inventoryLedger.push({date:today(), sku:p.sku, name:p.name, type:'Out', godown:fromName, qty:-qty, ref:'Transfer to '+toName});
+    S.inventoryLedger.push({date:today(), sku:p.sku, name:p.name, type:'In', godown:toName, qty, ref:'Transfer from '+fromName});
+    saveLocal(); closeModal(); renderGodown(); renderParts(); sync();
+  });
+}
+
+// Vendors / Dealers
+function renderVendors(){
+  document.getElementById('vendorsBody').innerHTML = S.vendors.map(v=> `<tr><td><b>${v.name}</b><div style="font-size:11px;color:var(--muted)">${v.addr||''}</div></td><td>${v.pan||'-'}</td><td>${v.phone||''}</td><td>${v.email||''}</td><td>${fmt(v.due||0)}</td><td><button class="btn ghost small" onclick="openVendorModal('${v.id}')">Edit</button> <button class="btn ghost small" onclick="delVendor('${v.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="6" class="empty">No vendors</td></tr>`;
+}
+function openVendorModal(id){
+  const v=id? S.vendors.find(x=>x.id===id): null;
+  const html=`<label class="form-label">Vendor Name</label><input class="form-input" id="v_name" value="${v?.name||''}"><label class="form-label">PAN / VAT</label><input class="form-input" id="v_pan" value="${v?.pan||''}"><div class="row"><div><label class="form-label">Phone</label><input class="form-input" id="v_phone" value="${v?.phone||''}"></div><div><label class="form-label">Email</label><input class="form-input" id="v_email" value="${v?.email||''}"></div></div><label class="form-label">Address</label><input class="form-input" id="v_addr" value="${v?.addr||''}">`;
+  openModal(v?'Edit Vendor':'Add Vendor', html, ()=>{
+    const name=document.getElementById('v_name').value.trim(); if(!name) return toast('Name required','err');
+    const obj={id:v?.id||uid(), name, pan:document.getElementById('v_pan').value.trim(), phone:document.getElementById('v_phone').value.trim(), email:document.getElementById('v_email').value.trim(), addr:document.getElementById('v_addr').value.trim(), due:v?.due||0};
+    if(v) Object.assign(v,obj); else S.vendors.push(obj);
+    saveLocal(); closeModal(); renderVendors(); sync();
+  });
+}
+function delVendor(id){ if(!confirm('Delete?')) return; S.vendors=S.vendors.filter(x=>x.id!==id); saveLocal(); renderVendors(); sync(); }
+function renderDealers(){
+  document.getElementById('dealersBody').innerHTML = S.dealers.map(d=> `<tr><td><b>${d.name}</b><div style="font-size:11px;color:var(--muted)">${d.loc||''}</div></td><td>${d.pan||''}</td><td>${d.phone||''}</td><td>${d.loc||''}</td><td>${fmt(d.credit||0)}</td><td>${fmt(d.due||0)}</td><td><button class="btn ghost small" onclick="openDealerModal('${d.id}')">Edit</button> <button class="btn ghost small" onclick="delDealer('${d.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="7" class="empty">No dealers</td></tr>`;
+}
+function openDealerModal(id){
+  const d=id? S.dealers.find(x=>x.id===id): null;
+  const html=`<label class="form-label">Dealer / Shop Name</label><input class="form-input" id="d_name" value="${d?.name||''}"><label class="form-label">PAN</label><input class="form-input" id="d_pan" value="${d?.pan||''}"><div class="row"><div><label class="form-label">Phone</label><input class="form-input" id="d_phone" value="${d?.phone||''}"></div><div><label class="form-label">Location</label><input class="form-input" id="d_loc" value="${d?.loc||''}"></div></div><div class="row"><div><label class="form-label">Credit Limit (NPR)</label><input class="form-input" id="d_credit" type="number" value="${d?.credit||0}"></div><div><label class="form-label">Due</label><input class="form-input" id="d_due" type="number" value="${d?.due||0}"></div></div>`;
+  openModal(d?'Edit Dealer':'Add Dealer', html, ()=>{
+    const name=document.getElementById('d_name').value.trim(); if(!name) return toast('Name required','err');
+    const obj={id:d?.id||uid(), name, pan:document.getElementById('d_pan').value.trim(), phone:document.getElementById('d_phone').value.trim(), loc:document.getElementById('d_loc').value.trim(), credit:Number(document.getElementById('d_credit').value||0), due:Number(document.getElementById('d_due').value||0)};
+    if(d) Object.assign(d,obj); else S.dealers.push(obj);
+    saveLocal(); closeModal(); renderDealers(); sync();
+  });
+}
+function delDealer(id){ if(!confirm('Delete?')) return; S.dealers=S.dealers.filter(x=>x.id!==id); saveLocal(); renderDealers(); sync(); }
+
+// Purchase Orders
+function renderPO(){
+  document.getElementById('poBody').innerHTML = S.purchaseOrders.map(po=> `<tr><td><b>${po.poNo}</b></td><td>${po.date}</td><td>${po.vendorName}</td><td>${po.godownName}</td><td>${po.lines.length}</td><td>${fmt(po.total)}</td><td><span class="badge ${po.status==='Received'?'g':po.status==='Ordered'?'o':'b'}">${po.status}</span></td><td><button class="btn ghost small" onclick="openPOModal('${po.id}')">View</button> <button class="btn ghost small" onclick="receivePO('${po.id}')">Receive</button> <button class="btn ghost small" onclick="delPO('${po.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="8" class="empty">No POs</td></tr>`;
+}
+function poLinesHtml(lines){
+  return `<div class="lines"><div class="line-row head"><span>Part (SKU)</span><span>Qty</span><span>Rate</span><span>Amount</span><span>VAT?</span><span></span></div><div id="poLines">${lines.map((l,i)=> `<div class="line-row" data-i="${i}"><input class="form-input" value="${l.sku}" placeholder="SKU" list="skuListPO" oninput="this.dataset.sku=this.value"><input class="form-input" type="number" value="${l.qty}" placeholder="Qty"><input class="form-input" type="number" value="${l.rate}" placeholder="Rate"><span style="font-weight:700">${fmt((l.qty||0)*(l.rate||0))}</span><label style="font-size:12px"><input type="checkbox" ${l.vat?'checked':''}> VAT 13%</label><button class="btn ghost small" onclick="this.closest('.line-row').remove();calcPOLive()">×</button></div>`).join('')}</div><datalist id="skuListPO">${S.parts.map(p=>`<option value="${p.sku} — ${p.name}">`).join('')}</datalist><button class="btn ghost small" style="margin-top:8px" onclick="addPOLine()">+ Add line</button><div id="poTotals" style="margin-top:8px;text-align:right;font-weight:700"></div>`;
+}
+function addPOLine(){ const c=document.getElementById('poLines'); const div=document.createElement('div'); div.className='line-row'; div.innerHTML=`<input class="form-input" placeholder="SKU" list="skuListPO"><input class="form-input" type="number" placeholder="Qty" value="1"><input class="form-input" type="number" placeholder="Rate"><span>—</span><label><input type="checkbox" checked> VAT 13%</label><button class="btn ghost small" onclick="this.closest('.line-row').remove()">×</button>`; c.appendChild(div); }
+function calcPOLive(){
+  const rows=[...document.querySelectorAll('#poLines .line-row')];
+  let taxable=0, vat=0;
+  rows.forEach(r=>{
+    const qty=Number(r.children[1].value||0), rate=Number(r.children[2].value||0), incVat=r.querySelector('input[type=checkbox]').checked;
+    const amt=qty*rate; taxable+=amt; if(incVat) vat+=amt*0.13;
+    r.children[3].textContent=fmt(amt);
+  });
+  const t=document.getElementById('poTotals'); if(t) t.textContent=`Taxable: ${fmt(taxable)} + VAT: ${fmt(vat)} = Total: ${fmt(taxable+vat)}`;
+}
+function openPOModal(id){
+  const po=id? S.purchaseOrders.find(x=>x.id===id): null;
+  const html=`<div class="row"><div><label class="form-label">PO No</label><input class="form-input" id="po_no" value="${po?.poNo||'PO-'+Date.now().toString().slice(-6)}"></div><div><label class="form-label">Date</label><input class="form-input" id="po_date" type="date" value="${po?.date||today()}"></div></div>
+    <div class="row"><div><label class="form-label">Vendor</label><select class="form-input" id="po_vendor">${S.vendors.map(v=>`<option value="${v.id}" ${po?.vendorId===v.id?'selected':''}>${v.name}</option>`).join('')||'<option value="">Add vendor first</option>'}</select></div><div><label class="form-label">Godown</label><select class="form-input" id="po_godown">${S.godowns.map(g=>`<option value="${g.id}" ${po?.godownId===g.id?'selected':''}>${g.name}</option>`).join('')}</select></div></div>
+    <label class="form-label">Lines</label>${poLinesHtml(po?.lines||[{sku:'',qty:1,rate:0,vat:true}])}
+    <label class="form-label">Status</label><select class="form-input" id="po_status"><option ${po?.status==='Draft'?'selected':''}>Draft</option><option ${po?.status==='Ordered'?'selected':''}>Ordered</option><option ${po?.status==='Received'?'selected':''}>Received</option></select>`;
+  openModal(po?'View/Edit PO':'New Purchase Order', html, ()=>{
+    const rows=[...document.querySelectorAll('#poLines .line-row')];
+    const lines=rows.map(r=> ({ sku:(r.children[0].value.split(' —')[0].trim()), qty:Number(r.children[1].value||0), rate:Number(r.children[2].value||0), vat:r.querySelector('input[type=checkbox]').checked }));
+    if(!lines.length||!lines.some(l=>l.sku)) return toast('Add at least one line','err');
+    const vendorId=document.getElementById('po_vendor').value, godownId=document.getElementById('po_godown').value;
+    // calc totals with VAT per line
+    let taxable=0, vat=0; lines.forEach(l=>{ const a=l.qty*l.rate; taxable+=a; if(l.vat) vat+=a*0.13; });
+    const total=taxable+vat;
+    const obj={ id:po?.id||uid(), poNo:document.getElementById('po_no').value.trim(), date:document.getElementById('po_date').value, vendorId, vendorName:S.vendors.find(v=>v.id===vendorId)?.name||'', godownId, godownName:S.godowns.find(g=>g.id===godownId)?.name||'', lines, taxable, vat, total, status:document.getElementById('po_status').value };
+    if(po) Object.assign(po,obj); else S.purchaseOrders.push(obj);
+    saveLocal(); closeModal(); renderPO(); sync();
+    setTimeout(calcPOLive,80);
+  });
+  setTimeout(()=>{ document.querySelectorAll('#poLines input').forEach(el=> el.addEventListener('input', calcPOLive)); calcPOLive(); },120);
+}
+function delPO(id){ if(!confirm('Delete PO?')) return; S.purchaseOrders=S.purchaseOrders.filter(x=>x.id!==id); saveLocal(); renderPO(); sync(); }
+function receivePO(id){
+  const po=S.purchaseOrders.find(x=>x.id===id); if(!po) return; if(po.status==='Received') return toast('Already received','err');
+  if(!confirm(`Receive ${po.poNo} into ${po.godownName}? This will increase stock.`)) return;
+  po.lines.forEach(l=>{
+    const p=S.parts.find(x=>x.sku===l.sku); if(!p) return;
+    // if part is in different godown, move/add to PO godown
+    if(p.godownId!==po.godownId){
+      // if same SKU exists in target godown, merge, else move this part
+      const target=S.parts.find(x=>x.sku===l.sku && x.godownId===po.godownId);
+      if(target){ target.qty=Number(target.qty||0)+Number(l.qty||0); S.inventoryLedger.push({date:today(), sku:l.sku, name:p.name, type:'In', godown:po.godownName, qty:l.qty, ref:po.poNo}); return; }
+      else { p.godownId=po.godownId; p.godownName=po.godownName; }
+    }
+    p.qty=Number(p.qty||0)+Number(l.qty||0);
+    S.inventoryLedger.push({date:today(), sku:l.sku, name:p.name, type:'In', godown:po.godownName, qty:l.qty, ref:po.poNo});
+  });
+  po.status='Received';
+  // create purchase invoice automatically
+  const invNo='PINV-'+po.poNo;
+  if(!S.purchaseInvoices.find(x=>x.invNo===invNo)){
+    S.purchaseInvoices.push({id:uid(), invNo, type:'purchase', date:po.date, partyId:po.vendorId, partyName:po.vendorName, taxable:po.taxable, vat:po.vat, total:po.total, ref:po.poNo});
+  }
+  saveLocal(); renderPO(); renderParts(); renderGodown(); renderInvoices(); toast('Stock updated','ok'); sync();
+}
+
+// Dispatch
+function renderDispatch(){
+  document.getElementById('dispatchBody').innerHTML = S.dispatchOrders.map(d=> `<tr><td><b>${d.challanNo}</b></td><td>${d.date}</td><td>${d.dealerName}</td><td>${d.godownName}</td><td>${d.lines.length}</td><td>${fmt(d.total)}</td><td><span class="badge ${d.status==='Delivered'?'g':d.status==='Dispatched'?'o':'b'}">${d.status}</span></td><td><button class="btn ghost small" onclick="openDispatchModal('${d.id}')">View</button> <button class="btn ghost small" onclick="dispatchStatus('${d.id}')">Status</button> <button class="btn ghost small" onclick="delDispatch('${d.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="8" class="empty">No dispatches</td></tr>`;
+}
+function openDispatchModal(id){
+  const d=id? S.dispatchOrders.find(x=>x.id===id): null;
+  const html=`<div class="row"><div><label class="form-label">Challan No</label><input class="form-input" id="d_ch" value="${d?.challanNo||'CH-'+Date.now().toString().slice(-6)}"></div><div><label class="form-label">Date</label><input class="form-input" id="d_date" type="date" value="${d?.date||today()}"></div></div>
+    <div class="row"><div><label class="form-label">Dealer</label><select class="form-input" id="d_dealer">${S.dealers.map(x=>`<option value="${x.id}" ${d?.dealerId===x.id?'selected':''}>${x.name}</option>`).join('')||'<option value="">Add dealer first</option>'}</select></div><div><label class="form-label">Godown (ship from)</label><select class="form-input" id="d_godown">${S.godowns.map(g=>`<option value="${g.id}" ${d?.godownId===g.id?'selected':''}>${g.name}</option>`).join('')}</select></div></div>
+    <label class="form-label">Lines — will deduct stock on Dispatch</label>${poLinesHtml(d?.lines||[{sku:'',qty:1,rate:0,vat:true}])}
+    <label class="form-label">Status</label><select class="form-input" id="d_status"><option ${d?.status==='Draft'?'selected':''}>Draft</option><option ${d?.status==='Dispatched'?'selected':''}>Dispatched</option><option ${d?.status==='Delivered'?'selected':''}>Delivered</option></select>
+    <div class="row"><div><label class="form-label">Vehicle No</label><input class="form-input" id="d_vehicle" value="${d?.vehicle||''}" placeholder="Ba 2 Cha 1234"></div><div><label class="form-label">LR / Tracking</label><input class="form-input" id="d_lr" value="${d?.lr||''}"></div></div>`;
+  openModal(d?'View/Edit Dispatch':'New Dispatch', html, ()=>{
+    const rows=[...document.querySelectorAll('#poLines .line-row')];
+    const lines=rows.map(r=> ({ sku:(r.children[0].value.split(' —')[0].trim()), qty:Number(r.children[1].value||0), rate:Number(r.children[2].value||0), vat:r.querySelector('input[type=checkbox]').checked }));
+    if(!lines.some(l=>l.sku)) return toast('Add lines','err');
+    let taxable=0, vat=0; lines.forEach(l=>{ const a=l.qty*l.rate; taxable+=a; if(l.vat) vat+=a*0.13; });
+    const total=taxable+vat;
+    const dealerId=document.getElementById('d_dealer').value, godownId=document.getElementById('d_godown').value;
+    const prevStatus=d?.status||'Draft';
+    const newStatus=document.getElementById('d_status').value;
+    const obj={ id:d?.id||uid(), challanNo:document.getElementById('d_ch').value.trim(), date:document.getElementById('d_date').value, dealerId, dealerName:S.dealers.find(x=>x.id===dealerId)?.name||'', godownId, godownName:S.godowns.find(g=>g.id===godownId)?.name||'', lines, taxable, vat, total, status:newStatus, vehicle:document.getElementById('d_vehicle').value.trim(), lr:document.getElementById('d_lr').value.trim() };
+    if(newStatus==='Dispatched' && prevStatus!=='Dispatched' && prevStatus!=='Delivered'){
+      for(const l of lines){
+        const p=S.parts.find(x=>x.sku===l.sku); if(!p) return toast(`SKU ${l.sku} not found`,'err');
+        if(p.godownId!==godownId) return toast(`${l.sku} is in ${p.godownName}, not ${obj.godownName}`,'err');
+        if(l.qty>Number(p.qty||0)) return toast(`Not enough stock for ${l.sku} in ${obj.godownName} (have ${p.qty})`,'err');
+      }
+      lines.forEach(l=>{
+        const p=S.parts.find(x=>x.sku===l.sku); p.qty=Number(p.qty||0)-Number(l.qty||0);
+        S.inventoryLedger.push({date:obj.date, sku:l.sku, name:S.parts.find(x=>x.sku===l.sku)?.name||l.sku, type:'Out', godown:obj.godownName, qty:-l.qty, ref:obj.challanNo});
+      });
+      // auto sales invoice
+      const invNo='SINV-'+obj.challanNo;
+      if(!S.salesInvoices.find(x=>x.invNo===invNo)){
+        S.salesInvoices.push({id:uid(), invNo, type:'sales', date:obj.date, partyId:dealerId, partyName:obj.dealerName, taxable, vat, total, ref:obj.challanNo});
+      }
+    }
+    if(d) Object.assign(d,obj); else S.dispatchOrders.push(obj);
+    saveLocal(); closeModal(); renderDispatch(); renderParts(); renderGodown(); renderInvoices(); sync();
+  });
+  setTimeout(()=>{ document.querySelectorAll('#poLines input').forEach(el=> el.addEventListener('input', calcPOLive)); calcPOLive(); },120);
+}
+function delDispatch(id){ if(!confirm('Delete dispatch? Stock will NOT be restored.')) return; S.dispatchOrders=S.dispatchOrders.filter(x=>x.id!==id); saveLocal(); renderDispatch(); sync(); }
+function dispatchStatus(id){
+  const d=S.dispatchOrders.find(x=>x.id===id); if(!d) return;
+  const html=`<label class="form-label">Status for ${d.challanNo}</label><select class="form-input" id="ds"><option ${d.status==='Draft'?'selected':''}>Draft</option><option ${d.status==='Dispatched'?'selected':''}>Dispatched</option><option ${d.status==='Delivered'?'selected':''}>Delivered</option></select>`;
+  openModal('Update Status', html, ()=>{
+    const ns=document.getElementById('ds').value;
+    if(ns==='Dispatched' && d.status==='Draft'){
+      for(const l of d.lines){ const p=S.parts.find(x=>x.sku===l.sku); if(!p) return toast(`SKU ${l.sku} not found`,'err'); if(p.godownId!==d.godownId) return toast(`${l.sku} not in ${d.godownName}`,'err'); if(l.qty>Number(p.qty||0)) return toast(`Insufficient stock for ${l.sku} (have ${p.qty})`,'err'); }
+      d.lines.forEach(l=>{ const p=S.parts.find(x=>x.sku===l.sku); p.qty=Number(p.qty||0)-Number(l.qty||0); S.inventoryLedger.push({date:today(), sku:l.sku, name:p.name, type:'Out', godown:d.godownName, qty:-l.qty, ref:d.challanNo}); });
+      const invNo='SINV-'+d.challanNo; if(!S.salesInvoices.find(x=>x.invNo===invNo)) S.salesInvoices.push({id:uid(), invNo, type:'sales', date:d.date, partyId:d.dealerId, partyName:d.dealerName, taxable:d.taxable, vat:d.vat, total:d.total, ref:d.challanNo});
+    }
+    d.status=ns; saveLocal(); closeModal(); renderDispatch(); renderParts(); renderGodown(); renderInvoices(); sync();
+  });
+}
+
+// Invoices
+function renderInvoices(){
+  const q=(document.getElementById('invSearch')?.value||'').toLowerCase(), t=document.getElementById('invTypeFilter')?.value||'';
+  const all=[...S.salesInvoices.map(x=>({...x, _type:'sales'})), ...S.purchaseInvoices.map(x=>({...x,_type:'purchase'}))].sort((a,b)=> b.date.localeCompare(a.date));
+  let arr=all; if(t) arr=arr.filter(x=>x._type===t); if(q) arr=arr.filter(x=> (x.invNo.toLowerCase().includes(q) || x.partyName.toLowerCase().includes(q)));
+  document.getElementById('invBody').innerHTML = arr.map(x=> `<tr><td><b>${x.invNo}</b><div style="font-size:11px;color:var(--muted)">${x.ref||''}</div></td><td><span class="badge ${x._type==='sales'?'g':'b'}">${x._type}</span></td><td>${x.date}</td><td>${x.partyName}</td><td>${fmt(x.taxable)}</td><td>${fmt(x.vat)}</td><td><b>${fmt(x.total)}</b></td><td><button class="btn ghost small" onclick="printInvoice('${x.id}','${x._type}')">Print</button> <button class="btn ghost small" onclick="delInvoice('${x.id}','${x._type}')">Del</button></td></tr>`).join('') || `<tr><td colspan="8" class="empty">No invoices</td></tr>`;
+}
+function openInvoiceModal(type){
+  const html=`<div class="row"><div><label class="form-label">Invoice No</label><input class="form-input" id="iv_no" value="${(type==='sales'?'SINV-':'PINV-')+Date.now().toString().slice(-6)}"></div><div><label class="form-label">Date</label><input class="form-input" id="iv_date" type="date" value="${today()}"></div></div>
+    <label class="form-label">Party (${type==='sales'?'Dealer':'Vendor'})</label><select class="form-input" id="iv_party">${(type==='sales'?S.dealers:S.vendors).map(p=>`<option value="${p.id}">${p.name} — ${p.pan||''}</option>`).join('')||'<option value="">Create party first</option>'}</select>
+    <label class="form-label">Taxable Amount (NPR)</label><input class="form-input" id="iv_tax" type="number" oninput="document.getElementById('iv_vat').value=(this.value*0.13).toFixed(2);document.getElementById('iv_tot').value=(Number(this.value)+Number(this.value*0.13)).toFixed(2)">
+    <div class="row"><div><label class="form-label">VAT 13%</label><input class="form-input" id="iv_vat" type="number"></div><div><label class="form-label">Total</label><input class="form-input" id="iv_tot" type="number"></div></div>`;
+  openModal((type==='sales'?'Sales':'Purchase')+' Invoice — VAT 13%', html, ()=>{
+    const invNo=document.getElementById('iv_no').value.trim(), date=document.getElementById('iv_date').value, partyId=document.getElementById('iv_party').value, taxable=Number(document.getElementById('iv_tax').value||0), vat=Number(document.getElementById('iv_vat').value||0), total=Number(document.getElementById('iv_tot').value||0);
+    if(!invNo) return toast('Invoice no required','err');
+    const party=(type==='sales'?S.dealers:S.vendors).find(x=>x.id===partyId);
+    const obj={id:uid(), invNo, type, date, partyId, partyName:party?.name||'', taxable, vat, total, ref:''};
+    if(type==='sales') S.salesInvoices.push(obj); else S.purchaseInvoices.push(obj);
+    saveLocal(); closeModal(); renderInvoices(); renderReports(); sync();
+  });
+}
+function delInvoice(id,type){ if(!confirm('Delete invoice?')) return; if(type==='sales') S.salesInvoices=S.salesInvoices.filter(x=>x.id!==id); else S.purchaseInvoices=S.purchaseInvoices.filter(x=>x.id!==id); saveLocal(); renderInvoices(); sync(); }
+function printInvoice(id,type){
+  const inv=(type==='sales'?S.salesInvoices:S.purchaseInvoices).find(x=>x.id===id); if(!inv) return;
+  const cmp=S.company;
+  const html=`<div class="inv-box" id="printInv"><div style="display:flex;justify-content:space-between"><div><div style="font-weight:800;color:var(--blue)">${cmp.name}</div><div style="font-size:11px;color:var(--muted)">${cmp.addr} • PAN: ${cmp.pan} • ${cmp.phone}</div></div><div style="text-align:right"><div style="font-weight:800">${inv.invNo}</div><div style="font-size:11px;color:var(--muted)">${inv.date} • ${type}</div></div></div><div style="margin-top:10px;display:flex;gap:14px"><div><div style="font-size:10px;color:var(--muted);font-weight:700">BILL TO</div><div style="font-weight:700">${inv.partyName}</div></div></div><table style="margin-top:10px;width:100%"><tr><th>Description</th><th>Taxable</th><th>VAT 13%</th><th>Total</th></tr><tr><td>As per ${inv.ref||'—'}</td><td>${fmt(inv.taxable)}</td><td>${fmt(inv.vat)}</td><td><b>${fmt(inv.total)}</b></td></tr></table><div style="margin-top:10px;text-align:right;font-size:12px">Mariyam Motors • PAN ${cmp.pan} • VAT ${cmp.vat||13}% Nepal</div></div>`;
+  openModal('Invoice Preview — Print', html + `<div style="margin-top:10px;text-align:right"><button class="btn" onclick="window.print()">Print</button></div>`, ()=>{});
+}
+
+// Payments / Expenses
+function renderPayments(){ document.getElementById('payBody').innerHTML = S.payments.map(p=> `<tr><td>${p.date}</td><td>${p.partyName} <span class="badge ${p.partyType==='vendor'?'b':'g'}">${p.partyType}</span></td><td>${p.type}</td><td>${p.method}</td><td>${fmt(p.amount)}</td><td>${p.ref||''}</td><td><button class="btn ghost small" onclick="delPayment('${p.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="7" class="empty">No payments</td></tr>`; }
+function openPaymentModal(){
+  const parties=[...S.vendors.map(v=>({id:v.id,name:v.name,t:'vendor'})), ...S.dealers.map(d=>({id:d.id,name:d.name,t:'dealer'}))];
+  const html=`<label class="form-label">Party</label><select class="form-input" id="py_party">${parties.map(p=>`<option value="${p.id}|${p.t}">${p.name} — ${p.t}</option>`).join('')||'<option value="">Add party first</option>'}</select><div class="row"><div><label class="form-label">Date</label><input class="form-input" id="py_date" type="date" value="${today()}"></div><div><label class="form-label">Type</label><select class="form-input" id="py_type"><option>Paid</option><option>Received</option></select></div></div><div class="row"><div><label class="form-label">Method</label><select class="form-input" id="py_method"><option>Cash</option><option>Bank</option><option>eSewa</option><option>Khalti</option></select></div><div><label class="form-label">Amount (NPR)</label><input class="form-input" id="py_amt" type="number"></div></div><label class="form-label">Ref</label><input class="form-input" id="py_ref" placeholder="Cheque / Txn">`;
+  openModal('Add Payment', html, ()=>{
+    const [pid,ptype]=document.getElementById('py_party').value.split('|'), party=parties.find(x=>x.id===pid);
+    const obj={id:uid(), partyId:pid, partyName:party?.name||'', partyType:ptype, date:document.getElementById('py_date').value, type:document.getElementById('py_type').value, method:document.getElementById('py_method').value, amount:Number(document.getElementById('py_amt').value||0), ref:document.getElementById('py_ref').value.trim()};
+    S.payments.push(obj); saveLocal(); closeModal(); renderPayments(); sync();
+  });
+}
+function delPayment(id){ S.payments=S.payments.filter(x=>x.id!==id); saveLocal(); renderPayments(); sync(); }
+function renderExpenses(){ document.getElementById('expBody').innerHTML = S.expenses.map(e=> `<tr><td>${e.date}</td><td>${e.cat}</td><td>${e.desc}</td><td>${fmt(e.amount)}</td><td><button class="btn ghost small" onclick="delExpense('${e.id}')">Del</button></td></tr>`).join('') || `<tr><td colspan="5" class="empty">No expenses</td></tr>`; }
+function openExpenseModal(){
+  const html=`<div class="row"><div><label class="form-label">Date</label><input class="form-input" id="ex_date" type="date" value="${today()}"></div><div><label class="form-label">Category</label><select class="form-input" id="ex_cat"><option>Transport</option><option>Rent</option><option>Salary</option><option>Utilities</option><option>Other</option></select></div></div><label class="form-label">Description</label><input class="form-input" id="ex_desc"><label class="form-label">Amount (NPR)</label><input class="form-input" id="ex_amt" type="number">`;
+  openModal('Add Expense', html, ()=>{ const obj={id:uid(), date:document.getElementById('ex_date').value, cat:document.getElementById('ex_cat').value, desc:document.getElementById('ex_desc').value.trim(), amount:Number(document.getElementById('ex_amt').value||0)}; S.expenses.push(obj); saveLocal(); closeModal(); renderExpenses(); sync(); });
+}
+function delExpense(id){ S.expenses=S.expenses.filter(x=>x.id!==id); saveLocal(); renderExpenses(); sync(); }
+
+// Masters
+function renderMasters(){
+  document.getElementById('catList').innerHTML = S.categories.map((c,i)=> `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${c}</span><button class="btn ghost small" onclick="S.categories.splice(${i},1);saveLocal();renderMasters();renderParts()">×</button></div>`).join('');
+  document.getElementById('brandList').innerHTML = S.brands.map((b,i)=> `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${b}</span><button class="btn ghost small" onclick="S.brands.splice(${i},1);saveLocal();renderMasters();renderParts()">×</button></div>`).join('');
+  document.getElementById('unitList').innerHTML = S.units.map((u,i)=> `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${u}</span><button class="btn ghost small" onclick="S.units.splice(${i},1);saveLocal();renderMasters()">×</button></div>`).join('');
+  document.getElementById('godownList').innerHTML = S.godowns.map(g=> `<div style="padding:6px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between"><span><b>${g.name}</b> — ${g.location} <span class="badge b">${g.code}</span></span></div>`).join('');
+  // company fields
+  document.getElementById('cmpName').value=S.company.name||''; document.getElementById('cmpPan').value=S.company.pan||''; document.getElementById('cmpAddr').value=S.company.addr||''; document.getElementById('cmpPhone').value=S.company.phone||''; document.getElementById('cmpEmail').value=S.company.email||''; document.getElementById('cmpVat').value=S.company.vat||13;
+}
+function addCategory(){ const v=document.getElementById('catInput').value.trim(); if(!v) return; S.categories.push(v); document.getElementById('catInput').value=''; saveLocal(); renderMasters(); sync(); }
+function addBrand(){ const v=document.getElementById('brandInput').value.trim(); if(!v) return; S.brands.push(v); document.getElementById('brandInput').value=''; saveLocal(); renderMasters(); sync(); }
+function addUnit(){ const v=document.getElementById('unitInput').value.trim(); if(!v) return; S.units.push(v); document.getElementById('unitInput').value=''; saveLocal(); renderMasters(); sync(); }
+function addGodown(){ const n=document.getElementById('godownName').value.trim(), l=document.getElementById('godownLoc').value.trim(); if(!n) return; S.godowns.push({id:uid(), name:n, location:l||'', code:'GD-0'+(S.godowns.length+1)}); document.getElementById('godownName').value=''; document.getElementById('godownLoc').value=''; saveLocal(); renderMasters(); renderGodown(); sync(); }
+function saveCompany(){ S.company={name:document.getElementById('cmpName').value.trim(), pan:document.getElementById('cmpPan').value.trim(), addr:document.getElementById('cmpAddr').value.trim(), phone:document.getElementById('cmpPhone').value.trim(), email:document.getElementById('cmpEmail').value.trim(), vat:Number(document.getElementById('cmpVat').value||13)}; saveLocal(); toast('Company saved','ok'); sync(); }
+
+// Reports
+function renderReports(){
+  const val=S.parts.reduce((s,p)=>s+Number(p.qty||0)*Number(p.cost||0),0);
+  document.getElementById('valuationBox').innerHTML=`<div style="font-size:22px;font-weight:800">${fmt(val)}</div><div style="font-size:12px;color:var(--muted)">At cost price • MRP value ${fmt(S.parts.reduce((s,p)=>s+Number(p.qty||0)*Number(p.mrp||0),0))}</div>`;
+  // top parts by dispatch qty
+  const map={}; S.dispatchOrders.forEach(d=> d.lines.forEach(l=>{ map[l.sku]=(map[l.sku]||0)+Number(l.qty||0); }));
+  const tops=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topParts').innerHTML = tops.length? tops.map(([sku,qty])=>{ const p=S.parts.find(x=>x.sku===sku); return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)"><span>${sku} — ${(p?.name||'').slice(0,22)}</span><b>${qty}</b></div>`; }).join('') : `<div class="empty">No sales yet</div>`;
+  // pnl
+  const sales=S.salesInvoices.reduce((s,x)=>s+Number(x.total||0),0);
+  const purchase=S.purchaseInvoices.reduce((s,x)=>s+Number(x.total||0),0);
+  const expenses=S.expenses.reduce((s,x)=>s+Number(x.amount||0),0);
+  const pnl=sales - purchase - expenses;
+  document.getElementById('pnlBox').innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap"><span>Sales: <b>${fmt(sales)}</b></span><span>Purchase: <b>${fmt(purchase)}</b></span><span>Expenses: <b>${fmt(expenses)}</b></span><span style="margin-left:auto">P&L: <b style="color:${pnl>=0?'var(--green)':'var(--red)'}">${fmt(pnl)}</b></span></div>`;
+}
+function vatReport(){
+  const m=document.getElementById('vatMonth').value; if(!m) return toast('Pick month','err');
+  const sales=S.salesInvoices.filter(x=> x.date.startsWith(m));
+  const purch=S.purchaseInvoices.filter(x=> x.date.startsWith(m));
+  const sTax=sales.reduce((s,x)=>s+Number(x.taxable||0),0), sVat=sales.reduce((s,x)=>s+Number(x.vat||0),0), sTot=sales.reduce((s,x)=>s+Number(x.total||0),0);
+  const pTax=purch.reduce((s,x)=>s+Number(x.taxable||0),0), pVat=purch.reduce((s,x)=>s+Number(x.vat||0),0), pTot=purch.reduce((s,x)=>s+Number(x.total||0),0);
+  const payable=sVat - pVat;
+  document.getElementById('vatReport').innerHTML=`<div style="display:grid;gap:6px">
+    <div><b>Sales</b> — Taxable ${fmt(sTax)} + VAT ${fmt(sVat)} = ${fmt(sTot)} (${sales.length} inv)</div>
+    <div><b>Purchase</b> — Taxable ${fmt(pTax)} + VAT ${fmt(pVat)} = ${fmt(pTot)} (${purch.length} inv)</div>
+    <div style="font-weight:800;border-top:1px solid var(--line);padding-top:6px">VAT Payable: <span style="color:${payable>=0?'var(--red)':'var(--green)'}">${fmt(payable)}</span> ${payable<0?'(Carry forward)':''}</div>
+  </div>`;
+}
+
+// Settings extras
+async function changePass(){
+  const np=document.getElementById('newPass').value.trim(); if(np.length<6) return toast('Min 6 chars','err');
+  if(!DB_ENDPOINT) return toast('Local mode — no server password','err');
+  const r=await api('changePassword', AUTH, {newPassword:np});
+  // handle via generic changePassword endpoint — we call fetch manually
+  if(!r){
+    // fallback direct
+    const res=await fetch(DB_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'changePassword', username:AUTH.username, password:AUTH.password, newPassword:np})});
+    const j=await res.json(); if(j.ok){ AUTH.password=np; localStorage.setItem('moto_auth', JSON.stringify(AUTH)); toast('Password changed','ok'); } else toast(j.error,'err');
+  } else if(r.ok){ AUTH.password=np; localStorage.setItem('moto_auth', JSON.stringify(AUTH)); toast('Password changed','ok'); } else toast(r.error,'err');
+}
+async function doBackup(){ if(!DB_ENDPOINT) return toast('No R2 in local mode','err'); const r=await fetch(DB_ENDPOINT+'?backup=1'); const j=await r.json(); toast(j.ok?('Backup '+j.manualBackup.key):j.error, j.ok?'ok':'err'); }
+async function loadBackups(){ if(!DB_ENDPOINT) return; const r=await fetch(DB_ENDPOINT+'?listBackups=1'); const j=await r.json(); document.getElementById('backupList').innerHTML=(j.backups||[]).slice(0,8).map(b=> `<div>${b.key} — ${(b.size/1024).toFixed(1)}KB</div>`).join('')||'No backups'; }
+
+// close modal on overlay click
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+document.getElementById('importOverlay').addEventListener('click', e=>{ if(e.target.id==='importOverlay') e.currentTarget.classList.remove('on'); });
+
+// expose
+window.renderParts=renderParts; window.openPartModal=openPartModal; window.delPart=delPart; window.openImport=openImport; window.doImport=doImport; window.exportParts=exportParts; window.exportAll=exportAll; window.openBarcodeBulk=openBarcodeBulk;
+window.renderGodown=renderGodown; window.openStockIn=openStockIn; window.openStockAdjust=openStockAdjust; window.openTransfer=openTransfer;
+window.openVendorModal=openVendorModal; window.delVendor=delVendor; window.openDealerModal=openDealerModal; window.delDealer=delDealer;
+window.openPOModal=openPOModal; window.delPO=delPO; window.receivePO=receivePO; window.addPOLine=addPOLine;
+window.openDispatchModal=openDispatchModal; window.delDispatch=delDispatch; window.dispatchStatus=dispatchStatus;
+window.openInvoiceModal=openInvoiceModal; window.delInvoice=delInvoice; window.printInvoice=printInvoice;
+window.openPaymentModal=openPaymentModal; window.delPayment=delPayment; window.openExpenseModal=openExpenseModal; window.delExpense=delExpense;
+window.addCategory=addCategory; window.addBrand=addBrand; window.addUnit=addUnit; window.addGodown=addGodown; window.saveCompany=saveCompany;
+window.vatReport=vatReport; window.changePass=changePass; window.doBackup=doBackup; window.loadBackups=loadBackups; window.closeModal=closeModal; window.calcPOLive=calcPOLive;
+
+// auto hide boot
+setTimeout(()=> boot.classList.add('hide'), 600);
+</script>
+</body>
+</html>

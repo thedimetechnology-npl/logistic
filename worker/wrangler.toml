@@ -1,0 +1,21 @@
+name = "moto-logistics"
+main = "src/index.js"
+compatibility_date = "2026-08-31"
+compatibility_flags = ["nodejs_compat"]
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "moto_logistics"
+database_id = "d22d484e-a3da-4fee-8483-e83b0e4a5465"
+
+[[r2_buckets]]
+binding = "BACKUP_BUCKET"
+bucket_name = "moto-logistics-backup"
+
+[vars]
+DB_NAME = "moto_logistics"
+VAT_RATE = "13"
+CURRENCY = "NPR"

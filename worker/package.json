@@ -1,0 +1,14 @@
+{
+  "name": "moto-logistics-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Motorcycle Parts Logistics Portal — Cloudflare Worker + D1 backend",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
